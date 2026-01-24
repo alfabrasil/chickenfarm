@@ -1,0 +1,97 @@
+import React, { useState } from 'react';
+import { X, Dna } from 'lucide-react';
+import { TYPE_CONFIG } from '../../data/gameConfig';
+import { playSound } from '../../utils/audioSystem';
+
+const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity }) => {
+  const [parent1, setParent1] = useState(null);
+  const [parent2, setParent2] = useState(null);
+  const [breeding, setBreeding] = useState(false);
+  const cost = 500;
+
+  const handleBreed = () => {
+    if (!parent1 || !parent2) return;
+    if (balance < cost) return;
+    if (chickens.length >= maxCapacity) { alert("Galinheiro Cheio!"); return; }
+
+    setBreeding(true);
+    setBalance(prev => prev - cost);
+    playSound('dna');
+
+    setTimeout(() => {
+      // Algoritmo de Cruzamento
+      const roll = Math.random();
+      let newType = 'GRANJA';
+      
+      // Mutações Especiais
+      if (roll < 0.05) newType = 'MUTANTE'; // 5% chance de Mutante Puro
+      else if (roll < 0.10 && (parent1.type === 'CYBER' || parent2.type === 'CYBER')) newType = 'CYBER'; // Herança Cyber rara
+      else if (parent1.type !== parent2.type && roll < 0.40) newType = 'HIBRIDA'; // 40% chance de Híbrida se pais diferentes
+      else newType = Math.random() > 0.5 ? parent1.type : parent2.type; // 50/50 dos pais
+
+      const baby = { 
+        id: Date.now(), 
+        type: newType, 
+        name: `Exp. #${Math.floor(Math.random()*999)}`, 
+        age_days: 0, 
+        last_fed_day: 1, 
+        is_sick: false, 
+        has_poop: false, 
+        last_collected_day: 0 
+      };
+
+      setChickens(prev => [...prev, baby]);
+      setBreeding(false);
+      setParent1(null);
+      setParent2(null);
+      playSound('success');
+      alert(`Cruzamento Sucesso! Nasceu uma ${TYPE_CONFIG[newType].label}`);
+    }, 2000);
+  };
+
+  return (
+    <div className="animate-in slide-in-from-bottom-10 fade-in pb-24 md:pb-0">
+      <div className="flex items-center gap-2 mb-4"><button onClick={onBack} className="bg-white p-2 rounded-full shadow-md"><X size={24}/></button><h1 className="text-2xl font-black text-slate-800 bg-white/50 px-3 py-1 rounded-xl">BioLab Genético</h1></div>
+      
+      <div className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl mb-6 relative overflow-hidden border-b-8 border-slate-950">
+        <div className="relative z-10 flex justify-between items-center">
+          <div className={`w-24 h-24 rounded-2xl border-4 border-dashed flex items-center justify-center cursor-pointer transition-all ${parent1 ? 'bg-white border-white' : 'bg-white/10 border-white/30 hover:bg-white/20'}`} onClick={() => setParent1(null)}>
+            {parent1 ? <div className="text-4xl">{TYPE_CONFIG[parent1.type].icon}</div> : <span className="text-xs font-bold text-white/50">PAI A</span>}
+          </div>
+          <div className="text-2xl font-black text-pink-500 animate-pulse">+</div>
+          <div className={`w-24 h-24 rounded-2xl border-4 border-dashed flex items-center justify-center cursor-pointer transition-all ${parent2 ? 'bg-white border-white' : 'bg-white/10 border-white/30 hover:bg-white/20'}`} onClick={() => setParent2(null)}>
+             {parent2 ? <div className="text-4xl">{TYPE_CONFIG[parent2.type].icon}</div> : <span className="text-xs font-bold text-white/50">PAI B</span>}
+          </div>
+        </div>
+        <div className="mt-6">
+          <button 
+            disabled={!parent1 || !parent2 || balance < cost || breeding} 
+            onClick={handleBreed}
+            className="w-full bg-pink-500 hover:bg-pink-600 disabled:bg-slate-600 text-white py-3 rounded-xl font-black shadow-lg border-b-4 border-pink-700 disabled:border-slate-800 transition-all flex items-center justify-center gap-2"
+          >
+             {breeding ? 'PROCESSANDO DNA...' : <><Dna size={20}/> CRUZAR GENÉTICA (500 💰)</>}
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200">
+        <h3 className="font-black text-slate-800 mb-3">Selecione os Pais (Adultos)</h3>
+        <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+          {chickens.filter(c => c.age_days >= 30).map(c => (
+            <button 
+              key={c.id} 
+              disabled={parent1?.id === c.id || parent2?.id === c.id}
+              onClick={() => !parent1 ? setParent1(c) : setParent2(c)}
+              className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center bg-slate-50 hover:bg-green-50 disabled:opacity-50 disabled:grayscale ${parent1?.id === c.id || parent2?.id === c.id ? 'border-green-500 bg-green-100' : 'border-slate-200'}`}
+            >
+              <span className="text-2xl">{TYPE_CONFIG[c.type].icon}</span>
+              <span className="text-[8px] font-bold text-slate-500 truncate w-full text-center px-1">{c.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GeneticsLabScreen;
