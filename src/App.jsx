@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowUpCircle, Lock, Moon
+  ArrowUpCircle, Lock, Moon, Gamepad2, Dna
 } from 'lucide-react';
 
 // Dados e Configuração
@@ -42,6 +42,7 @@ import CommunityScreen from './components/screens/CommunityScreen';
 import WheelScreen from './components/screens/WheelScreen';
 import ProfileScreen from './components/screens/ProfileScreen';
 import WalletScreen from './components/screens/WalletScreen';
+import ChickenChaseScreen from './components/screens/ChickenChaseScreen';
 
 // --- APP PRINCIPAL ---
 export default function App() {
@@ -153,7 +154,12 @@ export default function App() {
     localStorage.setItem('farm_market_history', JSON.stringify(marketHistory));
   }, [session, balance, bankBalance, dayCount, level, xp, inventory, chickens, weather, marketPrices, quests, stats, achievements, lastSpinDay, automations, upgrades, marketNews, coopProgress, auctionItems, goldenEggs, currentSkin, marketHistory]);
 
-  const showToast = (message, type = 'success') => { setToast({ message, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = (arg1, arg2 = 'success') => { 
+    const message = typeof arg1 === 'object' ? arg1.message : arg1;
+    const type = typeof arg1 === 'object' ? (arg1.type || arg2) : arg2;
+    setToast({ message, type }); 
+    setTimeout(() => setToast(null), 3000); 
+  };
   
   const handleExportSave = () => {
     const saveData = btoa(JSON.stringify(localStorage));
@@ -707,7 +713,20 @@ export default function App() {
 
             {view === 'COOP' ? (
               <div className="animate-in slide-in-from-left-10 fade-in duration-300 pb-24 md:pb-0">
-                 <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[70]"><button onClick={handleSleep} disabled={isNight} className="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-indigo-400 animate-bounce">{isNight ? <span className="animate-spin">⏳</span> : <Moon size={32} fill="currentColor" />}</button></div>
+                 <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[70] flex flex-col gap-4">
+                   <button onClick={() => setView('CHASE')} className="bg-purple-600 hover:bg-purple-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-purple-400 animate-in zoom-in group relative">
+                     <Gamepad2 size={32} fill="currentColor" className="group-hover:rotate-12 transition-transform"/>
+                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white animate-pulse">NOVO</span>
+                   </button>
+                   {upgrades.LAB && (
+                     <button onClick={() => setView('LAB')} className="bg-pink-500 hover:bg-pink-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-pink-400 animate-in zoom-in">
+                       <Dna size={32} fill="currentColor" className="animate-pulse"/>
+                     </button>
+                   )}
+                   <button onClick={handleSleep} disabled={isNight} className="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-indigo-400 animate-bounce">
+                     {isNight ? <span className="animate-spin">⏳</span> : <Moon size={32} fill="currentColor" />}
+                   </button>
+                 </div>
                  <div className="mb-6 bg-white/60 backdrop-blur-sm p-4 rounded-2xl inline-block border-2 border-white/50 shadow-sm">
                    <h1 className="text-2xl font-black text-slate-800 drop-shadow-sm">Galinheiro</h1>
                    <p className="text-slate-700 font-medium text-xs sm:text-sm">Capacidade: {chickens.length} / {maxCapacity} aves</p>
@@ -741,6 +760,8 @@ export default function App() {
               <WheelScreen onBack={() => setView('COOP')} onSpin={handleSpinReward} canSpin={canSpinWheel()} balance={balance} />
             ) : view === 'BANK' ? (
               <BankScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} bankBalance={bankBalance} setBankBalance={setBankBalance} />
+            ) : view === 'CHASE' ? (
+              <ChickenChaseScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} />
             ) : (
               <WalletScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} addFloatingText={addFloatingText} />
             )}

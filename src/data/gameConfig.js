@@ -28,6 +28,16 @@ export const MARKET_NEWS = [
   { id: 'BOOM', title: 'Ovo de Ouro', desc: 'Investidores correm para ovos. +80%!', multiplier: 1.8, color: 'text-yellow-600', icon: '🚀' },
 ];
 
+export const BREEDING_COST = 500;
+
+export const MINIGAME_CONFIG = {
+  SOLO_BET: 10,
+  SOLO_REWARD_MULTIPLIER: 1.5, // 50% profit
+  SOLO_ATTEMPTS: 3,
+  PVP_BURN_FEE: 0.20, // 20% burned from loser's bet
+  DOOR_COUNT: 12
+};
+
 export const ITEMS_CONFIG = {
   EGG_COMMON: { name: 'Ovo Comum', basePrice: 10, icon: '🥚', color: 'text-slate-600' },
   EGG_RARE: { name: 'Ovo Raro', basePrice: 25, icon: '✨', color: 'text-orange-500' },

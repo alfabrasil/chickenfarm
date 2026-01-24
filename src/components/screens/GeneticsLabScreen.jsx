@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { X, Dna } from 'lucide-react';
-import { TYPE_CONFIG } from '../../data/gameConfig';
+import { TYPE_CONFIG, BREEDING_COST } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
 
-const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity }) => {
+const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity, showToast }) => {
   const [parent1, setParent1] = useState(null);
   const [parent2, setParent2] = useState(null);
   const [breeding, setBreeding] = useState(false);
-  const cost = 500;
+  const cost = BREEDING_COST;
 
   const handleBreed = () => {
     if (!parent1 || !parent2) return;
-    if (balance < cost) return;
-    if (chickens.length >= maxCapacity) { alert("Galinheiro Cheio!"); return; }
+    if (balance < cost) {
+      showToast({ message: "Saldo insuficiente para o cruzamento!", type: 'error' });
+      return;
+    }
+    if (chickens.length >= maxCapacity) { 
+      showToast({ message: "Galinheiro Cheio! Libere espaço.", type: 'error' });
+      return; 
+    }
 
     setBreeding(true);
     setBalance(prev => prev - cost);
@@ -45,7 +51,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       setParent1(null);
       setParent2(null);
       playSound('success');
-      alert(`Cruzamento Sucesso! Nasceu uma ${TYPE_CONFIG[newType].label}`);
+      showToast(`Cruzamento Sucesso! Nasceu uma ${TYPE_CONFIG[newType].label}`, 'success');
     }, 2000);
   };
 
@@ -69,7 +75,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
             onClick={handleBreed}
             className="w-full bg-pink-500 hover:bg-pink-600 disabled:bg-slate-600 text-white py-3 rounded-xl font-black shadow-lg border-b-4 border-pink-700 disabled:border-slate-800 transition-all flex items-center justify-center gap-2"
           >
-             {breeding ? 'PROCESSANDO DNA...' : <><Dna size={20}/> CRUZAR GENÉTICA (500 💰)</>}
+             {breeding ? 'PROCESSANDO DNA...' : <><Dna size={20}/> CRUZAR GENÉTICA ({cost} 💰)</>}
           </button>
         </div>
       </div>

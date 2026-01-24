@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Sparkles, CloudRain, Sun, Bot, Trash2, Landmark, Dna, Settings as SettingsIcon, Dices, 
-  Users2, ClipboardList, Warehouse, ShoppingBag 
+  Users2, ClipboardList, Warehouse, ShoppingBag, Gamepad2 
 } from 'lucide-react';
 import { playSound } from '../utils/audioSystem';
 
@@ -50,7 +50,8 @@ const Navbar = ({ balance, dayCount, onViewChange, currentView, level, xp, xpToN
       )}
 
       <div onClick={() => { playSound('pop'); onViewChange('SETTINGS'); }} className={`p-2 rounded-full border-b-4 active:border-b-0 active:translate-y-1 transition-all cursor-pointer shadow-sm shrink-0 ${currentView === 'SETTINGS' ? 'bg-slate-200 text-slate-600 border-slate-400' : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'}`}><SettingsIcon size={20} /></div>
-      <div onClick={() => { playSound('pop'); onViewChange('WHEEL'); }} className={`p-2 rounded-full border-b-4 active:border-b-0 active:translate-y-1 transition-all cursor-pointer shadow-sm shrink-0 ${currentView === 'WHEEL' ? 'bg-purple-100 text-purple-600 border-purple-300' : 'bg-white text-slate-400 border-slate-200 hover:text-purple-500'}`}><Dices size={20} /></div>
+      <div onClick={() => { playSound('pop'); onViewChange('CHASE'); }} className={`p-2 rounded-full border-b-4 active:border-b-0 active:translate-y-1 transition-all cursor-pointer shadow-sm shrink-0 ${currentView === 'CHASE' ? 'bg-purple-100 text-purple-600 border-purple-300' : 'bg-white text-slate-400 border-slate-200 hover:text-purple-500'}`} title="Minigame PvP"><Gamepad2 size={20} /></div>
+      <div onClick={() => { playSound('pop'); onViewChange('WHEEL'); }} className={`p-2 rounded-full border-b-4 active:border-b-0 active:translate-y-1 transition-all cursor-pointer shadow-sm shrink-0 ${currentView === 'WHEEL' ? 'bg-purple-50 text-purple-400 border-purple-200' : 'bg-white text-slate-400 border-slate-200 hover:text-purple-400'}`} title="Roleta Diária"><Dices size={20} /></div>
       <div onClick={() => { playSound('pop'); onViewChange('COMMUNITY'); }} className={`p-2 rounded-full border-b-4 active:border-b-0 active:translate-y-1 transition-all cursor-pointer shadow-sm shrink-0 ${currentView === 'COMMUNITY' ? 'bg-blue-100 text-blue-600 border-blue-300' : 'bg-white text-slate-400 border-slate-200 hover:text-blue-500'}`}><Users2 size={20} /></div>
       <div onClick={() => { playSound('pop'); openQuests(); }} className="relative p-2 rounded-full border-b-4 bg-white text-slate-400 border-slate-200 hover:text-blue-500 cursor-pointer shadow-sm active:border-b-0 active:translate-y-1 shrink-0">
         <ClipboardList size={20} />

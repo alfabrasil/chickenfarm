@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, ShoppingBag, Warehouse, ClipboardList, Menu, Users2, Dices, Landmark, Settings as SettingsIcon } from 'lucide-react';
+import { Home, ShoppingBag, Warehouse, ClipboardList, Menu, Users2, Dices, Landmark, Settings as SettingsIcon, Gamepad2 } from 'lucide-react';
 import { playSound } from '../utils/audioSystem';
 
 const MobileBottomNav = ({ currentView, onViewChange, openQuests, pendingRewards }) => {
@@ -20,7 +20,8 @@ const MobileBottomNav = ({ currentView, onViewChange, openQuests, pendingRewards
         <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setIsMenuOpen(false)}>
           <div className="absolute bottom-24 right-4 bg-white rounded-2xl p-4 shadow-2xl border-b-4 border-slate-200 w-48 animate-in slide-in-from-bottom-5 space-y-2">
             <button onClick={() => { onViewChange('COMMUNITY'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><Users2 size={20} className="text-blue-500"/> Comunidade</button>
-            <button onClick={() => { onViewChange('WHEEL'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><Dices size={20} className="text-purple-500"/> Roleta</button>
+            <button onClick={() => { onViewChange('CHASE'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><Gamepad2 size={20} className="text-purple-600"/> Minigame</button>
+            <button onClick={() => { onViewChange('WHEEL'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><Dices size={20} className="text-purple-400"/> Roleta</button>
             <button onClick={() => { onViewChange('BANK'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><Landmark size={20} className="text-green-500"/> Banco</button>
             <button onClick={() => { onViewChange('SETTINGS'); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 text-slate-700 font-bold"><SettingsIcon size={20} className="text-slate-500"/> Config</button>
           </div>
