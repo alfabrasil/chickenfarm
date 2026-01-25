@@ -162,7 +162,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
       onClick={() => onClick(door.id)}
       className={`relative aspect-[3/4] rounded-t-full border-4 transition-all transform duration-300 ${
         door.status === 'OPEN' 
-          ? (door.content === 'CHICKEN' ? 'bg-yellow-200 border-yellow-500' : 'bg-slate-800 border-slate-600') 
+          ? (door.content === 'CHICKEN' ? 'bg-yellow-200 border-yellow-500 scale-110 shadow-[0_0_20px_rgba(234,179,8,0.6)] z-10' : 'bg-slate-800 border-slate-600') 
           : 'bg-orange-700 border-orange-900 hover:scale-105 active:scale-95 shadow-lg'
       }`}
     >
@@ -173,8 +173,15 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
           <div className="absolute right-2 top-1/2 w-2 h-2 bg-yellow-600 rounded-full shadow-sm"></div>
         </div>
       ) : (
-        <div className="w-full h-full flex items-center justify-center animate-in zoom-in">
-          {door.content === 'CHICKEN' ? <span className="text-4xl">🐔</span> : <span className="text-2xl opacity-30">🕸️</span>}
+        <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-500">
+          {door.content === 'CHICKEN' ? (
+            <div className="relative">
+              <span className="text-5xl animate-bounce absolute -top-4 -left-3">🐔</span>
+              <span className="text-5xl animate-ping absolute -top-4 -left-3 opacity-30">✨</span>
+            </div>
+          ) : (
+            <span className="text-5xl opacity-80 drop-shadow-md animate-pulse text-slate-400">🕸️</span>
+          )}
         </div>
       )}
     </button>
@@ -209,11 +216,11 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
       <div className="px-4 pb-8">
         {activeTab === 'SOLO' && (
           <div className="flex flex-col gap-6">
-            {soloState === 'IDLE' || soloState === 'WON' || soloState === 'LOST' ? (
+            {soloState === 'IDLE' ? (
               <div className="bg-white rounded-3xl p-6 shadow-xl text-center border-b-8 border-pink-100">
                 <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">🎯</div>
                 <h2 className="text-2xl font-black text-slate-800 mb-2">Desafio Solo</h2>
-                <p className="text-slate-500 mb-6">Encontre a galinha em 3 tentativas.</p>
+                <p className="text-slate-500 mb-6">Encontre a galinha em {MINIGAME_CONFIG.SOLO_ATTEMPTS} tentativas.</p>
                 
                 <div className="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
                   <div className="flex justify-between items-center mb-2">
@@ -231,14 +238,30 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
                 </button>
               </div>
             ) : (
-              <div className="animate-in fade-in">
-                <div className="flex justify-between items-center mb-4 px-2">
-                  <div className="text-slate-500 font-bold text-sm">Tentativas: <span className="text-pink-600 text-lg">{MINIGAME_CONFIG.SOLO_ATTEMPTS - soloAttempts}</span></div>
-                  <div className="text-slate-400 text-xs">Ache a galinha!</div>
+              <div className="animate-in fade-in flex flex-col gap-4">
+                <div className="flex justify-between items-center px-2">
+                  <div className="text-slate-500 font-bold text-sm">Tentativas: <span className={`${soloAttempts >= MINIGAME_CONFIG.SOLO_ATTEMPTS - 1 ? 'text-red-600 animate-pulse' : 'text-pink-600'} text-lg transition-colors`}>{MINIGAME_CONFIG.SOLO_ATTEMPTS - soloAttempts}</span></div>
+                  <div className="text-slate-400 text-xs font-medium">{soloState === 'WON' ? 'VOCÊ VENCEU!' : soloState === 'LOST' ? 'GAME OVER' : 'Ache a galinha!'}</div>
                 </div>
+                
                 <div className="grid grid-cols-4 gap-3">
                   {soloDoors.map(door => renderDoor(door, handleSoloDoorClick, soloState !== 'PLAYING'))}
                 </div>
+
+                {(soloState === 'WON' || soloState === 'LOST') && (
+                  <div className={`mt-4 p-6 rounded-2xl text-center shadow-xl animate-in slide-in-from-bottom-5 ${soloState === 'WON' ? 'bg-green-100 border-b-4 border-green-300' : 'bg-red-100 border-b-4 border-red-300'}`}>
+                    <div className="text-3xl mb-2">{soloState === 'WON' ? '🎉' : '💀'}</div>
+                    <h3 className={`text-xl font-black mb-1 ${soloState === 'WON' ? 'text-green-700' : 'text-red-700'}`}>
+                      {soloState === 'WON' ? 'Parabéns!' : 'Que pena!'}
+                    </h3>
+                    <p className={`text-sm mb-4 ${soloState === 'WON' ? 'text-green-600' : 'text-red-600'}`}>
+                      {soloState === 'WON' ? `Você ganhou ${Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER)} moedas!` : 'Tente novamente.'}
+                    </p>
+                    <button onClick={startSoloGame} className={`w-full py-3 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 ${soloState === 'WON' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}>
+                      Jogar Novamente
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

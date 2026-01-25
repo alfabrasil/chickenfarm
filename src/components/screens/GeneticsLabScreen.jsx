@@ -43,7 +43,10 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
         last_fed_day: 1, 
         is_sick: false, 
         has_poop: false, 
-        last_collected_day: 0 
+        last_collected_day: 0,
+        is_lab_created: true,
+        immune: true,
+        adult_threshold: 15
       };
 
       setChickens(prev => [...prev, baby]);

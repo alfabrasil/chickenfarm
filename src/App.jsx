@@ -518,7 +518,7 @@ export default function App() {
         const hasCleanSweep = automations.CLEANSWEEP?.active;
         const chanceOfSickness = c.has_poop && !hasCleanSweep ? 0.8 : (isHungry ? 0.4 : baseSickness);
         
-        const gotSick = !c.is_starter && !c.is_sick && Math.random() < chanceOfSickness;
+        const gotSick = !c.is_starter && !c.immune && !c.is_sick && Math.random() < chanceOfSickness;
         const madePoop = !c.is_sick && Math.random() < 0.5;
         
         return { ...c, age_days: c.age_days + 1, is_sick: c.is_sick || gotSick, has_poop: hasCleanSweep ? false : (c.has_poop || madePoop) };

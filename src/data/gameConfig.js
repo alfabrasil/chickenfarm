@@ -33,7 +33,7 @@ export const BREEDING_COST = 500;
 export const MINIGAME_CONFIG = {
   SOLO_BET: 10,
   SOLO_REWARD_MULTIPLIER: 1.5, // 50% profit
-  SOLO_ATTEMPTS: 3,
+  SOLO_ATTEMPTS: 6,
   PVP_BURN_FEE: 0.20, // 20% burned from loser's bet
   DOOR_COUNT: 12
 };
