@@ -747,7 +747,7 @@ export default function App() {
             ) : view === 'BARN' ? (
               <BarnScreen onBack={() => setView('COOP')} inventory={inventory} onSellEggs={handleSellEggs} addFloatingText={addFloatingText} marketPrices={marketPrices} upgrades={upgrades} marketNews={marketNews} goldenEggs={goldenEggs} marketHistory={marketHistory} />
             ) : view === 'LAB' ? (
-              <GeneticsLabScreen onBack={() => setView('COOP')} chickens={chickens} balance={balance} setBalance={setBalance} setChickens={setChickens} maxCapacity={maxCapacity} />
+              <GeneticsLabScreen onBack={() => setView('COOP')} chickens={chickens} balance={balance} setBalance={setBalance} setChickens={setChickens} maxCapacity={maxCapacity} showToast={showToast} dayCount={dayCount} />
             ) : view === 'SETTINGS' ? (
               <SettingsScreen onBack={() => setView('COOP')} onReset={handleReset} dayCount={dayCount} isMuted={isMuted} toggleMute={() => setIsMuted(!isMuted)} onPrestige={handlePrestige} canPrestige={balance >= 5000} goldenEggsToGain={Math.floor(balance/5000)} onExportSave={handleExportSave} onImportSave={handleImportSave} />
             ) : view === 'RANKING' ? (

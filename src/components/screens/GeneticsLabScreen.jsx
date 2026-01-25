@@ -3,7 +3,7 @@ import { X, Dna } from 'lucide-react';
 import { TYPE_CONFIG, BREEDING_COST } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
 
-const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity, showToast }) => {
+const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity, showToast, dayCount }) => {
   const [parent1, setParent1] = useState(null);
   const [parent2, setParent2] = useState(null);
   const [breeding, setBreeding] = useState(false);
@@ -12,11 +12,11 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
   const handleBreed = () => {
     if (!parent1 || !parent2) return;
     if (balance < cost) {
-      showToast({ message: "Saldo insuficiente para o cruzamento!", type: 'error' });
+      showToast("Saldo insuficiente para o cruzamento!", 'error');
       return;
     }
     if (chickens.length >= maxCapacity) { 
-      showToast({ message: "Galinheiro Cheio! Libere espaço.", type: 'error' });
+      showToast("Expandir Celeiro", 'error');
       return; 
     }
 
@@ -40,7 +40,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
         type: newType, 
         name: `Exp. #${Math.floor(Math.random()*999)}`, 
         age_days: 0, 
-        last_fed_day: 1, 
+        last_fed_day: dayCount, // Nasce alimentada no dia atual
         is_sick: false, 
         has_poop: false, 
         last_collected_day: 0,
