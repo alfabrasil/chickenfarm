@@ -423,29 +423,30 @@ export default function App() {
         if (interest > 0) showToast(`Rendimento do Banco: +${interest} moedas`, 'success');
       }
 
-      let feedUsedTotal = 0;
-      let availableFeed = inventory.feed;
-
       if (automations.NUTRIBOT?.active) {
-        setChickens(prev => prev.map(c => {
-          const needsFeed = c.last_fed_day < dayCount;
-          const consumption = TYPE_CONFIG[c.type].feedConsumption;
-          
-          if (needsFeed && availableFeed >= consumption) {
-            availableFeed -= consumption;
-            feedUsedTotal += consumption;
-            return { ...c, last_fed_day: dayCount };
+        let tempFeed = inventory.feed;
+        let feedUsed = 0;
+        
+        const nextChickens = chickens.map(c => {
+          if (c.last_fed_day < nextDay) {
+             const consumption = TYPE_CONFIG[c.type].feedConsumption;
+             if (tempFeed >= consumption) {
+               tempFeed -= consumption;
+               feedUsed += consumption;
+               return { ...c, last_fed_day: nextDay };
+             }
           }
           return c;
-        }));
-      }
+        });
 
-      setInventory(prev => {
-        const newFeed = Math.max(0, prev.feed - feedUsedTotal);
-        if (feedUsedTotal > 0 && prev.feed < feedUsedTotal) showToast("NutriBot sem ração suficiente!", "error"); 
-        else if (feedUsedTotal > 0) showToast(`NutriBot alimentou suas galinhas! (-${feedUsedTotal} ração)`, "info");
-        return { ...prev, feed: newFeed };
-      });
+        if (feedUsed > 0) {
+           setChickens(nextChickens);
+           setInventory(prev => ({ ...prev, feed: prev.feed - feedUsed }));
+           showToast(`NutriBot alimentou suas galinhas! (-${feedUsed} ração)`, "info");
+        } else if (chickens.some(c => c.last_fed_day < nextDay)) {
+           showToast("NutriBot sem ração suficiente!", "error");
+        }
+      }
 
       setAutomations(prev => {
         const nextState = { ...prev };

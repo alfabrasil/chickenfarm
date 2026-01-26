@@ -86,7 +86,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       <div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200">
         <h3 className="font-black text-slate-800 mb-3">Selecione os Pais (Adultos)</h3>
         <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-          {chickens.filter(c => c.age_days >= 30).map(c => (
+          {chickens.filter(c => c.age_days >= (c.adult_threshold || 30)).map(c => (
             <button 
               key={c.id} 
               disabled={parent1?.id === c.id || parent2?.id === c.id}
