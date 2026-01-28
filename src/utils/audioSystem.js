@@ -8,6 +8,43 @@ export const setGlobalMute = (isMuted) => {
 
 let audioCtx = null;
 
+// Detecta iOS (iPhone/iPad e iPadOS em Safari)
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let IOS_UNLOCKED = false;
+
+// Silêncio curto em MP3 (data URI) para destravar áudio em iOS
+// Fonte: bloco mínimo de silêncio compatível com Safari
+const SILENT_MP3_DATA_URI = 'data:audio/mpeg;base64,//uQZAAAAAAAAAAAAAAAAAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+export const unlockIOSAudio = async () => {
+  if (!IS_IOS || IOS_UNLOCKED) return;
+  try {
+    const a = new Audio();
+    a.src = SILENT_MP3_DATA_URI;
+    a.preload = 'auto';
+    a.muted = true;
+    a.setAttribute('playsinline', 'true');
+    await a.play().catch(() => {});
+    a.pause();
+    IOS_UNLOCKED = true;
+  } catch (e) {
+    // Falha de desbloqueio não é crítica; tentaremos novamente em próximas interações
+  }
+};
+
+export const attachAudioUnlockListeners = () => {
+  const handler = async () => {
+    await unlockIOSAudio();
+    initAudio();
+    window.removeEventListener('click', handler);
+    window.removeEventListener('touchstart', handler);
+    window.removeEventListener('touchend', handler);
+  };
+  window.addEventListener('click', handler, { passive: true });
+  window.addEventListener('touchstart', handler, { passive: true });
+  window.addEventListener('touchend', handler, { passive: true });
+};
+
 export const initAudio = () => {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -96,6 +133,13 @@ export const playSound = (type) => {
     gain.gain.linearRampToValueAtTime(0, now + 0.4);
     osc.start(now);
     osc.stop(now + 0.4);
+  } else if (type === 'neutral') {
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, now);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+    osc.start(now);
+    osc.stop(now + 0.2);
   } else if (type === 'achievement') {
     osc.type = 'square';
     osc.frequency.setValueAtTime(523.25, now);
