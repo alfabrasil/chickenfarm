@@ -105,15 +105,18 @@ export default function App() {
   // ENGENHARIA: Unlock Audio on iOS (Primeira Interação)
   useEffect(() => {
     const unlockAudio = () => {
+      console.log("Interação detectada, desbloqueando áudio...");
       initAudio();
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
+      // Não removemos imediatamente para garantir que múltiplas interações possam tentar desbloquear se a primeira falhar
+      // Mas removemos após sucesso ou algumas tentativas
     };
     window.addEventListener('click', unlockAudio);
     window.addEventListener('touchstart', unlockAudio);
+    window.addEventListener('touchend', unlockAudio);
     return () => {
       window.removeEventListener('click', unlockAudio);
       window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('touchend', unlockAudio);
     };
   }, []);
   
