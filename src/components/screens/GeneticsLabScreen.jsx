@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Dna } from 'lucide-react';
 import { TYPE_CONFIG, BREEDING_COST } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
+import { calculateBreedingResult } from '../../utils/genetics';
 
 const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens, maxCapacity, showToast, dayCount }) => {
   const [parent1, setParent1] = useState(null);
@@ -25,15 +26,8 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
     playSound('dna');
 
     setTimeout(() => {
-      // Algoritmo de Cruzamento
-      const roll = Math.random();
-      let newType = 'GRANJA';
-      
-      // Mutações Especiais
-      if (roll < 0.05) newType = 'MUTANTE'; // 5% chance de Mutante Puro
-      else if (roll < 0.10 && (parent1.type === 'CYBER' || parent2.type === 'CYBER')) newType = 'CYBER'; // Herança Cyber rara
-      else if (parent1.type !== parent2.type && roll < 0.40) newType = 'HIBRIDA'; // 40% chance de Híbrida se pais diferentes
-      else newType = Math.random() > 0.5 ? parent1.type : parent2.type; // 50/50 dos pais
+      // Algoritmo de Cruzamento (via utility)
+      const { newType } = calculateBreedingResult(parent1.type, parent2.type);
 
       const baby = { 
         id: Date.now(), 

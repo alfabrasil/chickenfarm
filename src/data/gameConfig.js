@@ -38,6 +38,37 @@ export const MINIGAME_CONFIG = {
   DOOR_COUNT: 12
 };
 
+export const RINHA_CONFIG = {
+  ROOSTER_PRICE: 1000,
+  SYSTEM_FEE: 0.10, // 10% fee (Player gets 100% bet + 80% of opponent)
+  ELEMENTS: {
+    FOGO: { id: 'FOGO', name: 'Fogo', base: 100, icon: '🔥', color: 'text-red-500' },
+    TERRA: { id: 'TERRA', name: 'Terra', base: 95, icon: '🌱', color: 'text-amber-700' },
+    AGUA: { id: 'AGUA', name: 'Água', base: 90, icon: '💧', color: 'text-blue-500' },
+    AR: { id: 'AR', name: 'Ar', base: 85, icon: '💨', color: 'text-slate-400' }
+  },
+  COLORS: {
+    VERMELHO: { id: 'VERMELHO', name: 'Vermelho', hex: '#ef4444', beats: 'AZUL' },
+    AZUL: { id: 'AZUL', name: 'Azul', hex: '#3b82f6', beats: 'VERDE' },
+    VERDE: { id: 'VERDE', name: 'Verde', hex: '#22c55e', beats: 'AMARELO' },
+    AMARELO: { id: 'AMARELO', name: 'Amarelo', hex: '#eab308', beats: 'VERMELHO' }
+  },
+  ARENAS: [
+    { id: 1, name: 'Arena de Terra', advantage: 'TERRA', bonus: 0.25, icon: '⛰️', desc: 'Favorece galos terrestres' },
+    { id: 2, name: 'Arena Aquática', advantage: 'AGUA', bonus: 0.25, icon: '🌊', desc: 'Favorece galos aquáticos' },
+    { id: 3, name: 'Arena Aérea', advantage: 'AR', bonus: 0.25, icon: '🌪️', desc: 'Favorece galos aéreos' },
+    { id: 4, name: 'Arena Vulcânica', advantage: 'FOGO', bonus: 0.25, icon: '🌋', desc: 'Favorece galos de fogo' }
+  ],
+  OPPONENTS: [
+    { id: 'op1', name: 'Galo de Briga', element: 'FOGO', color: 'VERMELHO', avatar: '🐓' },
+    { id: 'op2', name: 'Galo d\'Oeste', element: 'TERRA', color: 'AMARELO', avatar: '🤠' },
+    { id: 'op3', name: 'Galo Tsunami', element: 'AGUA', color: 'AZUL', avatar: '🌊' },
+    { id: 'op4', name: 'Galo Furacão', element: 'AR', color: 'VERDE', avatar: '🌀' },
+    { id: 'op5', name: 'Galo Infernal', element: 'FOGO', color: 'AMARELO', avatar: '🔥' },
+    { id: 'op6', name: 'Galo de Pedra', element: 'TERRA', color: 'VERDE', avatar: '💎' },
+  ]
+};
+
 export const ITEMS_CONFIG = {
   EGG_COMMON: { name: 'Ovo Comum', basePrice: 10, icon: '🥚', color: 'text-slate-600' },
   EGG_RARE: { name: 'Ovo Raro', basePrice: 25, icon: '✨', color: 'text-orange-500' },

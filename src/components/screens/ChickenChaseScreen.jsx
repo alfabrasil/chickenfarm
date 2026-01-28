@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Dices, Users2, Trophy, HelpCircle, DoorOpen, Play, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Dices, Users2, Trophy, HelpCircle, DoorOpen, Play, CheckCircle2, AlertCircle, Swords } from 'lucide-react';
 import { MINIGAME_CONFIG } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
+import CockfightScreen from './CockfightScreen';
 
 const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
-  const [activeTab, setActiveTab] = useState('SOLO'); // 'SOLO' | 'PVP'
+  const [activeTab, setActiveTab] = useState('SOLO'); // 'SOLO' | 'PVP' | 'RINHA'
   
   // --- STATE: SOLO MODE ---
   const [soloState, setSoloState] = useState('IDLE'); // IDLE, PLAYING, WON, LOST
@@ -200,15 +201,21 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
         <div className="flex p-1 bg-slate-800 rounded-xl">
           <button 
             onClick={() => setActiveTab('SOLO')}
-            className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'SOLO' ? 'bg-pink-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'SOLO' ? 'bg-pink-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
           >
-            SOLO (1 Jogador)
+            SOLO
           </button>
           <button 
             onClick={() => setActiveTab('PVP')}
-            className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'PVP' ? 'bg-purple-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+            className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'PVP' ? 'bg-purple-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
           >
-            PvP (Apostas)
+            PvP
+          </button>
+          <button 
+            onClick={() => setActiveTab('RINHA')}
+            className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'RINHA' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+          >
+            RINHA
           </button>
         </div>
       </div>
@@ -327,6 +334,10 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'RINHA' && (
+          <CockfightScreen onBack={() => setActiveTab('SOLO')} balance={balance} setBalance={setBalance} showToast={showToast} />
         )}
       </div>
     </div>
