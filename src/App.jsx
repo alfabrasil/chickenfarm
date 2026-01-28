@@ -715,7 +715,7 @@ export default function App() {
       {session === 'GAME' && fox && <FoxComponent x={fox.x} y={fox.y} onClick={handleFoxClick} />}
 
       {session === 'AUTH' && <AuthScreen onLogin={() => setSession('UNBOXING')} />}
-      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: 1, type: "GRANJA", name: "Meu Pintinho", age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
+      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: 1, type: "GRANJA", name: "Meu Pintinho", age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true, immune: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
       
       {session === 'GAME' && (
         <div className="relative z-10 h-screen overflow-y-auto">

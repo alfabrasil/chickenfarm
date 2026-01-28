@@ -2,11 +2,11 @@
 
 export const TYPE_CONFIG = {
   GRANJA: { color: "bg-yellow-100", border: "border-yellow-500", label: "Granja Comum", icon: "🐓", feedConsumption: 1, collectChance: { common: 0.9, rare: 0.1, legendary: 0 } },
-  CAIPIRA: { color: "bg-orange-100", border: "border-orange-600", label: "Caipira Rara", icon: "🐔", feedConsumption: 1, collectChance: { common: 0.5, rare: 0.45, legendary: 0.05 } },
-  GIGANTE: { color: "bg-purple-100", border: "border-purple-600", label: "Gigante Épica", icon: "🦖", feedConsumption: 2, collectChance: { common: 0.2, rare: 0.5, legendary: 0.3 } },
-  HIBRIDA: { color: "bg-pink-100", border: "border-pink-500", label: "Híbrida Ágil", icon: "🦄", feedConsumption: 1, collectChance: { common: 0.3, rare: 0.6, legendary: 0.1 } },
-  MUTANTE: { color: "bg-green-900", border: "border-green-400", label: "Mutante X", icon: "👽", feedConsumption: 0, collectChance: { common: 0, rare: 0.2, legendary: 0.8 }, textColor: "text-green-400" },
-  CYBER:   { color: "bg-slate-800", border: "border-cyan-400", label: "Cyber-Galinha", icon: "🤖", feedConsumption: 3, collectChance: { common: 0, rare: 0, legendary: 1.0 }, textColor: "text-cyan-300" }
+  CAIPIRA: { color: "bg-orange-100", border: "border-orange-600", label: "Caipira Raiz", icon: "🐔", feedConsumption: 1, collectChance: { common: 0.5, rare: 0.45, legendary: 0.05 } },
+  GIGANTE: { color: "bg-purple-100", border: "border-purple-600", label: "Galinha-Rex", icon: "🦖", feedConsumption: 2, collectChance: { common: 0.2, rare: 0.5, legendary: 0.3 } },
+  HIBRIDA: { color: "bg-pink-100", border: "border-pink-500", label: "Unicórnio Ágil", icon: "🦄", feedConsumption: 1, collectChance: { common: 0.3, rare: 0.6, legendary: 0.1 } },
+  MUTANTE: { color: "bg-green-900", border: "border-green-400", label: "ET Bilu", icon: "👽", feedConsumption: 0, collectChance: { common: 0, rare: 0.2, legendary: 0.8 }, textColor: "text-green-400" },
+  CYBER:   { color: "bg-slate-800", border: "border-cyan-400", label: "Robo-Chicken", icon: "🤖", feedConsumption: 3, collectChance: { common: 0, rare: 0, legendary: 1.0 }, textColor: "text-cyan-300" }
 };
 
 export const SKINS_CONFIG = {
