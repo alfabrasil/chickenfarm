@@ -43,6 +43,7 @@ import WheelScreen from './components/screens/WheelScreen';
 import ProfileScreen from './components/screens/ProfileScreen';
 import WalletScreen from './components/screens/WalletScreen';
 import ChickenChaseScreen from './components/screens/ChickenChaseScreen';
+import CockfightScreen from './components/screens/CockfightScreen';
 
 // --- APP PRINCIPAL ---
 export default function App() {
@@ -770,6 +771,8 @@ export default function App() {
               <BankScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} bankBalance={bankBalance} setBankBalance={setBankBalance} />
             ) : view === 'CHASE' ? (
               <ChickenChaseScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} />
+            ) : view === 'RINHA' ? (
+              <CockfightScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} />
             ) : (
               <WalletScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} addFloatingText={addFloatingText} />
             )}
