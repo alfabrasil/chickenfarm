@@ -6,12 +6,27 @@ export const setGlobalMute = (isMuted) => {
   IS_MUTED_GLOBAL = isMuted;
 };
 
+let audioCtx = null;
+
+const getAudioContext = () => {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) {
+      audioCtx = new AudioContext();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+};
+
 export const playSound = (type) => {
   if (IS_MUTED_GLOBAL) return; 
 
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const ctx = new AudioContext();
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
