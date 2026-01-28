@@ -29,26 +29,48 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       // Algoritmo de Cruzamento (via utility)
       const { newType } = calculateBreedingResult(parent1.type, parent2.type);
 
+      // Nomes Especiais e Divertidos (Engenharia de Humor)
+      const HYBRID_NAMES = ['Unicórnio', 'Grifo', 'Quimera', 'Pegasus', 'Basilisco', 'Fênix', 'Hidra', 'Manticora'];
+      const MUTANT_NAMES = ['ET', 'Alien', 'Predador', 'Xenomorfo', 'Cthulhu', 'Goo', 'Marciano', 'Varginha'];
+      const CYBER_NAMES = ['Robocop', 'T-800', 'Matrix', 'Cyberpunk', 'Android 18', 'Mecha', 'Bot', 'Terminator'];
+      
+      let specialName = `Exp. #${Math.floor(Math.random()*999)}`;
+      let isSpecial = false;
+
+      if (newType === 'HIBRIDA') {
+        specialName = `HÍBRIDO ÁGIL: ${HYBRID_NAMES[Math.floor(Math.random() * HYBRID_NAMES.length)]}`;
+        isSpecial = true;
+      } else if (newType === 'MUTANTE') {
+        specialName = `MUTANTE: ${MUTANT_NAMES[Math.floor(Math.random() * MUTANT_NAMES.length)]}`;
+        isSpecial = true;
+      } else if (newType === 'CYBER') {
+        specialName = `CYBER: ${CYBER_NAMES[Math.floor(Math.random() * CYBER_NAMES.length)]}`;
+        isSpecial = true;
+      } else if (parent1.type !== parent2.type && Math.random() < 0.5) {
+         // Mesmo se não for Híbrida (falha genética), pode ter nome engraçado se pais forem diferentes
+         specialName = `Mestiça: ${parent1.type.substring(0,3)}${parent2.type.substring(0,3)}`;
+      }
+
       const baby = { 
         id: Date.now(), 
         type: newType, 
-        name: `Exp. #${Math.floor(Math.random()*999)}`, 
+        name: specialName, 
         age_days: 0, 
         last_fed_day: dayCount, // Nasce alimentada no dia atual
         is_sick: false, 
         has_poop: false, 
         last_collected_day: 0,
         is_lab_created: true,
-        immune: true,
-        adult_threshold: 15
+        immune: true, // Garante imunidade genética
+        adult_threshold: 15 // Crescimento Acelerado (15 dias)
       };
 
       setChickens(prev => [...prev, baby]);
       setBreeding(false);
       setParent1(null);
       setParent2(null);
-      playSound('success');
-      showToast(`Cruzamento Sucesso! Nasceu uma ${TYPE_CONFIG[newType].label}`, 'success');
+      playSound(isSpecial ? 'achievement' : 'success');
+      showToast(`Cruzamento Sucesso! Nasceu: ${specialName}`, 'success');
     }, 2000);
   };
 

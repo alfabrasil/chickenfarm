@@ -60,7 +60,13 @@ export default function App() {
     const s = localStorage.getItem('farm_chickens'); 
     if (s) {
       const parsed = JSON.parse(s);
-      return parsed.map(c => ({...c, last_collected_day: c.last_collected_day || 0}));
+      return parsed.map(c => {
+        // Correção Retroativa: Starter deve ser imune
+        if (c.is_starter || c.name === "Meu Pintinho" || c.id === 1) {
+           return { ...c, last_collected_day: c.last_collected_day || 0, is_starter: true, immune: true, is_sick: false };
+        }
+        return { ...c, last_collected_day: c.last_collected_day || 0 };
+      });
     }
     return []; 
   });
