@@ -11,7 +11,7 @@ import {
 } from './data/gameConfig';
 
 // Utilitários
-import { playSound, setGlobalMute } from './utils/audioSystem';
+import { playSound, setGlobalMute, initAudio } from './utils/audioSystem';
 
 // Componentes UI
 import FoxComponent from './components/ui/Fox';
@@ -99,8 +99,23 @@ export default function App() {
   });
   const [achievements, setAchievements] = useState(() => {
     const s = localStorage.getItem('farm_achievements');
-    return s ? JSON.parse(s) : ACHIEVEMENTS_LIST.map(a => ({ id: a.id, unlocked: false }));
+    return s ? JSON.parse(s) : ACHIEVEMENTS_LIST;
   });
+
+  // ENGENHARIA: Unlock Audio on iOS (Primeira Interação)
+  useEffect(() => {
+    const unlockAudio = () => {
+      initAudio();
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, []);
   
   // ENGENHARIA: Novos Estados para os recursos implementados
   const [currentSkin, setCurrentSkin] = useState(() => localStorage.getItem('farm_skin') || 'DEFAULT');

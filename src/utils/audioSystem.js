@@ -8,15 +8,38 @@ export const setGlobalMute = (isMuted) => {
 
 let audioCtx = null;
 
-const getAudioContext = () => {
+export const initAudio = () => {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
       audioCtx = new AudioContext();
     }
   }
+  
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(e => console.error("Audio resume failed", e));
+    }
+    // Tocar um som silencioso para "aquecer" o engine no iOS
+    try {
+      const buffer = audioCtx.createBuffer(1, 1, 22050);
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioCtx.destination);
+      source.start(0);
+    } catch (e) {
+      console.error("Audio warm-up failed", e);
+    }
+  }
+  return audioCtx;
+};
+
+const getAudioContext = () => {
+  if (!audioCtx) {
+     return initAudio();
+  }
   if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    audioCtx.resume().catch(() => {});
   }
   return audioCtx;
 };
