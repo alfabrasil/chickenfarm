@@ -29,25 +29,41 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       // Algoritmo de Cruzamento (via utility)
       const { newType } = calculateBreedingResult(parent1.type, parent2.type);
 
-      // Nomes Especiais e Divertidos (Engenharia de Humor)
-      const HYBRID_NAMES = ['Unicórnio', 'Grifo', 'Quimera', 'Pegasus', 'Basilisco', 'Fênix', 'Hidra', 'Manticora'];
-      const MUTANT_NAMES = ['ET', 'Alien', 'Predador', 'Xenomorfo', 'Cthulhu', 'Goo', 'Marciano', 'Varginha'];
-      const CYBER_NAMES = ['Robocop', 'T-800', 'Matrix', 'Cyberpunk', 'Android 18', 'Mecha', 'Bot', 'Terminator'];
+      // --- ENGENHARIA DE VARIANTES AVANÇADA (Engenheiro de Software Sênior) ---
+      const VARIANT_MAP = {
+        HIBRIDA: [
+          { name: 'Unicórnio Ágil', icon: '🦄', color: 'bg-pink-100', border: 'border-pink-500', textColor: 'text-pink-700' },
+          { name: 'Grifo Majestoso', icon: '🦅', color: 'bg-amber-100', border: 'border-amber-500', textColor: 'text-amber-700' },
+          { name: 'Quimera Alpha', icon: '🐲', color: 'bg-indigo-100', border: 'border-indigo-500', textColor: 'text-indigo-700' },
+          { name: 'Fênix de Fogo', icon: '🔥', color: 'bg-red-100', border: 'border-red-500', textColor: 'text-red-700' },
+          { name: 'Pegasus Celestial', icon: '🐎', color: 'bg-sky-100', border: 'border-sky-500', textColor: 'text-sky-700' }
+        ],
+        MUTANTE: [
+          { name: 'ET Bilu', icon: '👽', color: 'bg-green-900', border: 'border-green-400', textColor: 'text-green-400' },
+          { name: 'Alien Invasor', icon: '👾', color: 'bg-purple-900', border: 'border-purple-400', textColor: 'text-purple-400' },
+          { name: 'Varginha (UFO)', icon: '🛸', color: 'bg-slate-900', border: 'border-slate-400', textColor: 'text-slate-400' },
+          { name: 'Predador X', icon: '👹', color: 'bg-red-900', border: 'border-orange-500', textColor: 'text-orange-500' },
+          { name: 'Xenomorfo', icon: '🦂', color: 'bg-black', border: 'border-green-600', textColor: 'text-green-500' }
+        ],
+        CYBER: [
+          { name: 'Robo-Chicken', icon: '🤖', color: 'bg-slate-800', border: 'border-cyan-400', textColor: 'text-cyan-300' },
+          { name: 'Mecha-Galo', icon: '🦾', color: 'bg-zinc-800', border: 'border-zinc-400', textColor: 'text-zinc-300' },
+          { name: 'T-1000 (Liquid)', icon: '🧊', color: 'bg-blue-900', border: 'border-blue-300', textColor: 'text-blue-200' },
+          { name: 'Neo-Matrix', icon: '🕶️', color: 'bg-emerald-950', border: 'border-emerald-500', textColor: 'text-emerald-400' },
+          { name: 'Cyber-Punk', icon: '🌆', color: 'bg-fuchsia-950', border: 'border-fuchsia-500', textColor: 'text-fuchsia-400' }
+        ]
+      };
       
+      let variant = null;
       let specialName = `Exp. #${Math.floor(Math.random()*999)}`;
       let isSpecial = false;
 
-      if (newType === 'HIBRIDA') {
-        specialName = `HÍBRIDO ÁGIL: ${HYBRID_NAMES[Math.floor(Math.random() * HYBRID_NAMES.length)]}`;
-        isSpecial = true;
-      } else if (newType === 'MUTANTE') {
-        specialName = `MUTANTE: ${MUTANT_NAMES[Math.floor(Math.random() * MUTANT_NAMES.length)]}`;
-        isSpecial = true;
-      } else if (newType === 'CYBER') {
-        specialName = `CYBER: ${CYBER_NAMES[Math.floor(Math.random() * CYBER_NAMES.length)]}`;
+      if (VARIANT_MAP[newType]) {
+        const variants = VARIANT_MAP[newType];
+        variant = variants[Math.floor(Math.random() * variants.length)];
+        specialName = variant.name;
         isSpecial = true;
       } else if (parent1.type !== parent2.type && Math.random() < 0.5) {
-         // Mesmo se não for Híbrida (falha genética), pode ter nome engraçado se pais forem diferentes
          specialName = `Mestiça: ${parent1.type.substring(0,3)}${parent2.type.substring(0,3)}`;
       }
 
@@ -55,14 +71,15 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
         id: Date.now(), 
         type: newType, 
         name: specialName, 
+        variant: variant, // Armazena o objeto completo da variante
         age_days: 0, 
-        last_fed_day: dayCount, // Nasce alimentada no dia atual
+        last_fed_day: dayCount, 
         is_sick: false, 
         has_poop: false, 
         last_collected_day: 0,
         is_lab_created: true,
-        immune: true, // Garante imunidade genética
-        adult_threshold: 15 // Crescimento Acelerado (15 dias)
+        immune: true, 
+        adult_threshold: 15 
       };
 
       setChickens(prev => [...prev, baby]);
@@ -70,7 +87,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       setParent1(null);
       setParent2(null);
       playSound(isSpecial ? 'achievement' : 'success');
-      showToast(`Cruzamento Sucesso! Nasceu: ${specialName}`, 'success');
+      showToast(`Sucesso! Nasceu: ${specialName}`, 'success');
     }, 2000);
   };
 
@@ -109,7 +126,7 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
               onClick={() => !parent1 ? setParent1(c) : setParent2(c)}
               className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center bg-slate-50 hover:bg-green-50 disabled:opacity-50 disabled:grayscale ${parent1?.id === c.id || parent2?.id === c.id ? 'border-green-500 bg-green-100' : 'border-slate-200'}`}
             >
-              <span className="text-2xl">{TYPE_CONFIG[c.type].icon}</span>
+              <span className="text-2xl">{c.variant ? c.variant.icon : TYPE_CONFIG[c.type].icon}</span>
               <span className="text-[8px] font-bold text-slate-500 truncate w-full text-center px-1">{c.name}</span>
             </button>
           ))}
