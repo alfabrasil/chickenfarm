@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X, Dices, Users2, Trophy, HelpCircle, DoorOpen, Play, CheckCircle2, AlertCircle, Swords } from 'lucide-react';
 import { MINIGAME_CONFIG } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
+import { useLanguage } from '../../contexts/LanguageContext';
 import CockfightScreen from './CockfightScreen';
 
 const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('SOLO'); // 'SOLO' | 'PVP' | 'RINHA'
   
   // --- STATE: SOLO MODE ---
@@ -32,7 +34,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
   // --- SOLO FUNCTIONS ---
   const startSoloGame = () => {
     if (balance < MINIGAME_CONFIG.SOLO_BET) {
-      showToast("Saldo insuficiente!", 'error');
+      showToast(t('msg_insufficient_funds'), 'error');
       return;
     }
     
@@ -66,14 +68,14 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
       const reward = Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER);
       setBalance(prev => prev + reward);
       playSound('success');
-      showToast(`Você achou! Ganhou ${reward} moedas!`, 'success');
+      showToast(t('chase_won_msg', [reward]), 'success');
     } else {
       const newAttempts = soloAttempts + 1;
       setSoloAttempts(newAttempts);
       if (newAttempts >= MINIGAME_CONFIG.SOLO_ATTEMPTS) {
         setSoloState('LOST');
         playSound('error');
-        showToast("Suas tentativas acabaram!", 'error');
+        showToast(t('chase_lost'), 'error');
         // Reveal chicken
         const revealedDoors = newDoors.map((d, i) => i === soloChickenDoor ? { ...d, status: 'OPEN', content: 'CHICKEN' } : d);
         setSoloDoors(revealedDoors);
@@ -86,7 +88,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
   // --- PVP FUNCTIONS ---
   const joinChallenge = (challenge) => {
     if (balance < challenge.bet) {
-      showToast({ message: "Saldo insuficiente para esta aposta!", type: 'error' });
+      showToast({ message: t('cockfight_insufficient_bet'), type: 'error' });
       return;
     }
 
@@ -126,11 +128,11 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
         const winAmount = Math.floor(currentChallenge.bet + (currentChallenge.bet * (1 - MINIGAME_CONFIG.PVP_BURN_FEE)));
         setBalance(prev => prev + winAmount);
         playSound('success');
-        showToast(`Você venceu! Ganhou ${winAmount} moedas!`, 'success');
+        showToast(t('chase_won_msg', [winAmount]), 'success');
       } else {
         setPvpState('LOST');
         playSound('error');
-        showToast(`${currentChallenge.player} achou a galinha! Você perdeu.`, 'error');
+        showToast(t('chase_found_chicken', [currentChallenge.player]), 'error');
       }
     } else {
       playSound(who === 'PLAYER' ? 'pop' : 'pop_soft');
@@ -194,7 +196,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
       <div className="bg-slate-900 text-white p-4 rounded-b-3xl shadow-xl mb-6 sticky top-0 z-20">
         <div className="flex items-center justify-between mb-4">
           <button onClick={onBack} className="bg-white/10 p-2 rounded-full hover:bg-white/20"><X size={20}/></button>
-          <h1 className="text-xl font-black flex items-center gap-2"><Dices className="text-pink-500"/> CHICKEN CHASE</h1>
+          <h1 className="text-xl font-black flex items-center gap-2"><Dices className="text-pink-500"/> {t('chase_title')}</h1>
           <div className="bg-yellow-500 text-slate-900 px-3 py-1 rounded-full font-bold text-sm">💰 {balance}</div>
         </div>
         
@@ -203,19 +205,19 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
             onClick={() => setActiveTab('SOLO')}
             className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'SOLO' ? 'bg-pink-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
           >
-            SOLO
+            {t('chase_tab_solo')}
           </button>
           <button 
             onClick={() => setActiveTab('PVP')}
             className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'PVP' ? 'bg-purple-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
           >
-            PvP
+            {t('chase_tab_pvp')}
           </button>
           <button 
             onClick={() => setActiveTab('RINHA')}
             className={`flex-1 py-2 rounded-lg font-bold text-[10px] md:text-sm transition-all ${activeTab === 'RINHA' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
           >
-            RINHA
+            {t('chase_tab_cockfight')}
           </button>
         </div>
       </div>
@@ -226,29 +228,29 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
             {soloState === 'IDLE' ? (
               <div className="bg-white rounded-3xl p-6 shadow-xl text-center border-b-8 border-pink-100">
                 <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">🎯</div>
-                <h2 className="text-2xl font-black text-slate-800 mb-2">Desafio Solo</h2>
-                <p className="text-slate-500 mb-6">Encontre a galinha em {MINIGAME_CONFIG.SOLO_ATTEMPTS} tentativas.</p>
+                <h2 className="text-2xl font-black text-slate-800 mb-2">{t('chase_solo_title')}</h2>
+                <p className="text-slate-500 mb-6">{t('chase_solo_desc', [MINIGAME_CONFIG.SOLO_ATTEMPTS])}</p>
                 
                 <div className="bg-slate-50 p-4 rounded-xl mb-6 border border-slate-200">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-slate-500">Aposta</span>
+                    <span className="text-slate-500">{t('chase_bet')}</span>
                     <span className="font-bold text-slate-800">{MINIGAME_CONFIG.SOLO_BET} 💰</span>
                   </div>
                   <div className="flex justify-between items-center text-green-600">
-                    <span className="">Prêmio</span>
-                    <span className="font-black text-lg">+{Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER - MINIGAME_CONFIG.SOLO_BET)} (Total {Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER)}) 💰</span>
+                    <span className="">{t('chase_prize')}</span>
+                    <span className="font-black text-lg">+{Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER - MINIGAME_CONFIG.SOLO_BET)} ({t('chase_total')} {Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER)}) 💰</span>
                   </div>
                 </div>
 
                 <button onClick={startSoloGame} className="w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-xl font-black shadow-lg border-b-4 border-pink-700 active:border-b-0 active:translate-y-1 transition-all">
-                  JOGAR AGORA
+                  {t('chase_btn_play')}
                 </button>
               </div>
             ) : (
               <div className="animate-in fade-in flex flex-col gap-4">
                 <div className="flex justify-between items-center px-2">
-                  <div className="text-slate-500 font-bold text-sm">Tentativas: <span className={`${soloAttempts >= MINIGAME_CONFIG.SOLO_ATTEMPTS - 1 ? 'text-red-600 animate-pulse' : 'text-pink-600'} text-lg transition-colors`}>{MINIGAME_CONFIG.SOLO_ATTEMPTS - soloAttempts}</span></div>
-                  <div className="text-slate-400 text-xs font-medium">{soloState === 'WON' ? 'VOCÊ VENCEU!' : soloState === 'LOST' ? 'GAME OVER' : 'Ache a galinha!'}</div>
+                  <div className="text-slate-500 font-bold text-sm">{t('chase_attempts')}: <span className={`${soloAttempts >= MINIGAME_CONFIG.SOLO_ATTEMPTS - 1 ? 'text-red-600 animate-pulse' : 'text-pink-600'} text-lg transition-colors`}>{MINIGAME_CONFIG.SOLO_ATTEMPTS - soloAttempts}</span></div>
+                  <div className="text-slate-400 text-xs font-medium">{soloState === 'WON' ? t('chase_won') : soloState === 'LOST' ? t('chase_lost') : t('chase_find_chicken')}</div>
                 </div>
                 
                 <div className="grid grid-cols-4 gap-3">
@@ -259,13 +261,13 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
                   <div className={`mt-4 p-6 rounded-2xl text-center shadow-xl animate-in slide-in-from-bottom-5 ${soloState === 'WON' ? 'bg-green-100 border-b-4 border-green-300' : 'bg-red-100 border-b-4 border-red-300'}`}>
                     <div className="text-3xl mb-2">{soloState === 'WON' ? '🎉' : '💀'}</div>
                     <h3 className={`text-xl font-black mb-1 ${soloState === 'WON' ? 'text-green-700' : 'text-red-700'}`}>
-                      {soloState === 'WON' ? 'Parabéns!' : 'Que pena!'}
+                      {soloState === 'WON' ? t('chase_congrats') : t('chase_pity')}
                     </h3>
                     <p className={`text-sm mb-4 ${soloState === 'WON' ? 'text-green-600' : 'text-red-600'}`}>
-                      {soloState === 'WON' ? `Você ganhou ${Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER)} moedas!` : 'Tente novamente.'}
+                      {soloState === 'WON' ? t('chase_won_msg', [Math.floor(MINIGAME_CONFIG.SOLO_BET * MINIGAME_CONFIG.SOLO_REWARD_MULTIPLIER)]) : t('chase_try_again')}
                     </p>
                     <button onClick={startSoloGame} className={`w-full py-3 rounded-xl font-bold text-white shadow-md transition-all active:scale-95 ${soloState === 'WON' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}>
-                      Jogar Novamente
+                      {t('chase_play_again')}
                     </button>
                   </div>
                 )}
@@ -280,28 +282,28 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
               <>
                 <div className="bg-purple-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                   <div className="relative z-10">
-                    <h2 className="text-2xl font-black mb-1">Arena PvP</h2>
-                    <p className="text-purple-200 text-sm mb-4">Desafie outros jogadores. O vencedor leva a aposta + 80%!</p>
+                    <h2 className="text-2xl font-black mb-1">{t('chase_pvp_title')}</h2>
+                    <p className="text-purple-200 text-sm mb-4">{t('chase_pvp_desc')}</p>
                     <button className="bg-white text-purple-700 px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-purple-50 transition-all flex items-center gap-2">
-                       <Play size={16}/> CRIAR APOSTA
+                       <Play size={16}/> {t('chase_create_bet')}
                     </button>
                   </div>
                   <div className="absolute -right-4 -bottom-4 text-purple-800 opacity-50"><Users2 size={120}/></div>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="font-black text-slate-700 ml-2">Livro de Apostas</h3>
+                  <h3 className="font-black text-slate-700 ml-2">{t('chase_bet_book')}</h3>
                   {challenges.map(c => (
                     <div key={c.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-all">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-xl">{c.avatar}</div>
                         <div>
                           <div className="font-bold text-slate-800 text-sm">{c.player}</div>
-                          <div className="text-xs text-slate-500">Aposta: <span className="font-black text-yellow-600">{c.bet} 💰</span></div>
+                          <div className="text-xs text-slate-500">{t('chase_bet')}: <span className="font-black text-yellow-600">{c.bet} 💰</span></div>
                         </div>
                       </div>
                       <button onClick={() => joinChallenge(c)} className="bg-purple-500 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md border-b-2 border-purple-700 hover:bg-purple-600 active:border-b-0 active:translate-y-0.5">
-                        DESAFIAR
+                        {t('chase_btn_challenge')}
                       </button>
                     </div>
                   ))}
@@ -311,20 +313,20 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
               <div className="animate-in fade-in">
                 <div className="bg-white p-4 rounded-2xl shadow-md mb-6 border-b-4 border-purple-100 flex justify-between items-center">
                    <div className="text-center">
-                     <div className="text-xs text-slate-400 font-bold">VOCÊ</div>
-                     <div className={`font-black ${pvpTurn === 'PLAYER' ? 'text-purple-600 animate-pulse' : 'text-slate-300'}`}>{pvpTurn === 'PLAYER' ? 'Sua Vez' : 'Aguarde'}</div>
+                     <div className="text-xs text-slate-400 font-bold">{t('chase_you')}</div>
+                     <div className={`font-black ${pvpTurn === 'PLAYER' ? 'text-purple-600 animate-pulse' : 'text-slate-300'}`}>{pvpTurn === 'PLAYER' ? t('chase_your_turn') : t('chase_wait')}</div>
                    </div>
                    <div className="font-black text-xl text-yellow-500">VS</div>
                    <div className="text-center">
                      <div className="text-xs text-slate-400 font-bold">{currentChallenge?.player}</div>
-                     <div className={`font-black ${pvpTurn === 'OPPONENT' ? 'text-red-500 animate-pulse' : 'text-slate-300'}`}>{pvpTurn === 'OPPONENT' ? 'Jogando...' : 'Aguarde'}</div>
+                     <div className={`font-black ${pvpTurn === 'OPPONENT' ? 'text-red-500 animate-pulse' : 'text-slate-300'}`}>{pvpTurn === 'OPPONENT' ? t('chase_playing') : t('chase_wait')}</div>
                    </div>
                 </div>
 
                 {(pvpState === 'WON' || pvpState === 'LOST') && (
                   <div className={`p-4 rounded-2xl mb-6 text-center text-white font-bold animate-bounce ${pvpState === 'WON' ? 'bg-green-500' : 'bg-red-500'}`}>
-                    {pvpState === 'WON' ? 'VOCÊ VENCEU!' : 'VOCÊ PERDEU!'}
-                    <button onClick={() => setPvpState('LOBBY')} className="block w-full mt-2 bg-white/20 hover:bg-white/30 py-2 rounded-lg text-sm">Voltar ao Lobby</button>
+                    {pvpState === 'WON' ? t('chase_won') : t('chase_you_lost')}
+                    <button onClick={() => setPvpState('LOBBY')} className="block w-full mt-2 bg-white/20 hover:bg-white/30 py-2 rounded-lg text-sm">{t('chase_back_lobby')}</button>
                   </div>
                 )}
 

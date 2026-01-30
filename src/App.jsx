@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowUpCircle, Lock, Moon, Gamepad2, Dna
+  ArrowUpCircle, Lock, Moon, Gamepad2, Dna, Zap
 } from 'lucide-react';
 
 // Dados e Configuração
@@ -44,69 +44,141 @@ import ProfileScreen from './components/screens/ProfileScreen';
 import WalletScreen from './components/screens/WalletScreen';
 import ChickenChaseScreen from './components/screens/ChickenChaseScreen';
 import CockfightScreen from './components/screens/CockfightScreen';
+import HarvestGameScreen from './components/screens/harvest/HarvestGameScreen';
+import { useLanguage } from './contexts/LanguageContext';
 
 // --- APP PRINCIPAL ---
 export default function App() {
+  const { t } = useLanguage();
   const [session, setSession] = useState(() => localStorage.getItem('farm_session') || 'AUTH');
-  const [balance, setBalance] = useState(() => Number(localStorage.getItem('farm_balance')) || 0);
-  const [bankBalance, setBankBalance] = useState(() => Number(localStorage.getItem('farm_bank_balance')) || 0);
-  const [dayCount, setDayCount] = useState(() => Number(localStorage.getItem('farm_day')) || 1);
-  const [level, setLevel] = useState(() => Number(localStorage.getItem('farm_level')) || 1);
-  const [xp, setXp] = useState(() => Number(localStorage.getItem('farm_xp')) || 0);
-  const [maxCapacity, setMaxCapacity] = useState(() => Number(localStorage.getItem('farm_capacity')) || 4); 
-  const [inventory, setInventory] = useState(() => { const s = localStorage.getItem('farm_inventory'); return s ? JSON.parse(s) : { feed: 0, vaccine: 0, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 }; });
+  const [balance, setBalance] = useState(() => {
+    const val = Number(localStorage.getItem('farm_balance'));
+    return isNaN(val) ? 0 : val;
+  });
+  const [bankBalance, setBankBalance] = useState(() => {
+    const val = Number(localStorage.getItem('farm_bank_balance'));
+    return isNaN(val) ? 0 : val;
+  });
+  const [dayCount, setDayCount] = useState(() => {
+    const val = Number(localStorage.getItem('farm_day'));
+    return isNaN(val) || val < 1 ? 1 : val;
+  });
+  const [level, setLevel] = useState(() => {
+    const val = Number(localStorage.getItem('farm_level'));
+    return isNaN(val) || val < 1 ? 1 : val;
+  });
+  const [xp, setXp] = useState(() => {
+    const val = Number(localStorage.getItem('farm_xp'));
+    return isNaN(val) ? 0 : val;
+  });
+  const [maxCapacity, setMaxCapacity] = useState(() => {
+    const val = Number(localStorage.getItem('farm_capacity'));
+    return isNaN(val) || val < 4 ? 4 : val;
+  }); 
+  const [inventory, setInventory] = useState(() => { 
+    try {
+      const s = localStorage.getItem('farm_inventory'); 
+      return s ? JSON.parse(s) : { feed: 5, vaccine: 0, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 }; 
+    } catch (e) {
+      console.error("Erro ao carregar inventário:", e);
+      return { feed: 5, vaccine: 0, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 };
+    }
+  });
   
   const [chickens, setChickens] = useState(() => { 
-    const s = localStorage.getItem('farm_chickens'); 
-    if (s) {
-      const parsed = JSON.parse(s);
-      return parsed.map(c => {
-        // Correção Retroativa: Starter deve ser imune
-        if (c.is_starter || c.name === "Meu Pintinho" || c.id === 1) {
-           return { ...c, last_collected_day: c.last_collected_day || 0, is_starter: true, immune: true, is_sick: false };
+    try {
+      const s = localStorage.getItem('farm_chickens'); 
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          return parsed.map(c => {
+            if (c.is_starter || c.name === t('app_starter_name') || c.id === 1) {
+               return { ...c, last_collected_day: c.last_collected_day || 0, is_starter: true, immune: true, is_sick: false };
+            }
+            return { ...c, last_collected_day: c.last_collected_day || 0 };
+          });
         }
-        return { ...c, last_collected_day: c.last_collected_day || 0 };
-      });
+      }
+    } catch (e) {
+      console.error("Erro ao carregar galinhas:", e);
     }
     return []; 
   });
 
   const [automations, setAutomations] = useState(() => {
-    const s = localStorage.getItem('farm_automations');
-    return s ? JSON.parse(s) : {};
+    try {
+      const s = localStorage.getItem('farm_automations');
+      return s ? JSON.parse(s) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const [upgrades, setUpgrades] = useState(() => {
-    const s = localStorage.getItem('farm_upgrades');
-    return s ? JSON.parse(s) : {};
+    try {
+      const s = localStorage.getItem('farm_upgrades');
+      return s ? JSON.parse(s) : {};
+    } catch (e) {
+      return {};
+    }
   });
 
   const [marketNews, setMarketNews] = useState(() => {
-    const s = localStorage.getItem('farm_market_news');
-    return s ? JSON.parse(s) : MARKET_NEWS[0];
+    try {
+      const s = localStorage.getItem('farm_market_news');
+      return s ? JSON.parse(s) : MARKET_NEWS[0];
+    } catch (e) {
+      return MARKET_NEWS[0];
+    }
   });
 
   const [coopProgress, setCoopProgress] = useState(() => Number(localStorage.getItem('farm_coop_progress')) || 0);
 
   const [auctionItems, setAuctionItems] = useState(() => {
-    const s = localStorage.getItem('farm_auctions');
-    return s ? JSON.parse(s) : AUCTION_MOCK_INITIAL;
+    try {
+      const s = localStorage.getItem('farm_auctions');
+      return s ? JSON.parse(s) : AUCTION_MOCK_INITIAL;
+    } catch (e) {
+      return AUCTION_MOCK_INITIAL;
+    }
   });
 
   const [goldenEggs, setGoldenEggs] = useState(() => Number(localStorage.getItem('farm_golden_eggs')) || 0);
 
   const [referralHistory, setReferralHistory] = useState([]);
   const [weather, setWeather] = useState(() => localStorage.getItem('farm_weather') || 'SUNNY'); 
-  const [marketPrices, setMarketPrices] = useState(() => { const s = localStorage.getItem('farm_prices'); return s ? JSON.parse(s) : { common: 10, rare: 25, legendary: 100 }; });
-  const [quests, setQuests] = useState(() => { const s = localStorage.getItem('farm_quests'); return s ? JSON.parse(s) : []; });
+  const [marketPrices, setMarketPrices] = useState(() => { 
+    try {
+      const s = localStorage.getItem('farm_prices'); 
+      return s ? JSON.parse(s) : { common: 10, rare: 25, legendary: 100 }; 
+    } catch (e) {
+      return { common: 10, rare: 25, legendary: 100 };
+    }
+  });
+  const [quests, setQuests] = useState(() => { 
+    try {
+      const s = localStorage.getItem('farm_quests'); 
+      return s ? JSON.parse(s) : []; 
+    } catch (e) {
+      return [];
+    }
+  });
 
   const [stats, setStats] = useState(() => {
-    const s = localStorage.getItem('farm_stats');
-    return s ? JSON.parse(s) : { total_eggs: 0, total_cleaned: 0, total_earned: 0, total_healed: 0, days_played: 1, legendary_eggs: 0 };
+    try {
+      const s = localStorage.getItem('farm_stats');
+      return s ? JSON.parse(s) : { total_eggs: 0, total_cleaned: 0, total_earned: 0, total_healed: 0, days_played: 1, legendary_eggs: 0 };
+    } catch (e) {
+      return { total_eggs: 0, total_cleaned: 0, total_earned: 0, total_healed: 0, days_played: 1, legendary_eggs: 0 };
+    }
   });
   const [achievements, setAchievements] = useState(() => {
-    const s = localStorage.getItem('farm_achievements');
-    return s ? JSON.parse(s) : ACHIEVEMENTS_LIST;
+    try {
+      const s = localStorage.getItem('farm_achievements');
+      return s ? JSON.parse(s) : ACHIEVEMENTS_LIST;
+    } catch (e) {
+      return ACHIEVEMENTS_LIST;
+    }
   });
 
   // ENGENHARIA: Desbloqueio confiável de áudio no iOS (primeira interação)
@@ -117,10 +189,17 @@ export default function App() {
   }, []);
   
   // ENGENHARIA: Novos Estados para os recursos implementados
-  const [currentSkin, setCurrentSkin] = useState(() => localStorage.getItem('farm_skin') || 'DEFAULT');
+  const [currentSkin, setCurrentSkin] = useState(() => {
+    const saved = localStorage.getItem('farm_skin');
+    return (saved && SKINS_CONFIG[saved]) ? saved : 'DEFAULT';
+  });
   const [marketHistory, setMarketHistory] = useState(() => {
-    const s = localStorage.getItem('farm_market_history');
-    return s ? JSON.parse(s) : Array(7).fill({ common: 10, trend: 'STABLE' }); // Inicia flat
+    try {
+      const s = localStorage.getItem('farm_market_history');
+      return s ? JSON.parse(s) : Array(7).fill({ common: 10, trend: 'STABLE' }); // Inicia flat
+    } catch (e) {
+      return Array(7).fill({ common: 10, trend: 'STABLE' });
+    }
   });
 
   const [isMuted, setIsMuted] = useState(() => localStorage.getItem('farm_muted') === 'true');
@@ -178,18 +257,18 @@ export default function App() {
   const handleExportSave = () => {
     const saveData = btoa(JSON.stringify(localStorage));
     navigator.clipboard.writeText(saveData);
-    showToast("Save copiado para a área de transferência!", "success");
+    showToast(t('save_exported'), "success");
   };
 
   const handleImportSave = () => {
-    const saveData = prompt("Cole o código do save aqui:");
+    const saveData = prompt(t('save_import_prompt'));
     if (saveData) {
       try {
         const data = JSON.parse(atob(saveData));
         Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
         window.location.reload();
       } catch (e) {
-        showToast("Código de save inválido!", "error");
+        showToast(t('save_invalid'), "error");
       }
     }
   };
@@ -197,10 +276,10 @@ export default function App() {
   const handleFoxEscape = () => {
     setInventory(prev => {
       if (prev.eggs_common > 0) {
-        showToast("A Raposa roubou 1 Ovo Comum!", "error");
+        showToast(t('fox_stole_egg'), "error");
         return { ...prev, eggs_common: prev.eggs_common - 1 };
       }
-      showToast("A Raposa fugiu sem levar nada!", "info");
+      showToast(t('fox_escaped'), "info");
       return prev;
     });
   };
@@ -210,7 +289,7 @@ export default function App() {
     setBalance(prev => prev + 50);
     addXp(20);
     playSound('success');
-    showToast(`Você pegou a Raposa! +50 moedas`, "success");
+    showToast(t('fox_caught', [50]), "success");
   };
 
   useEffect(() => {
@@ -220,7 +299,7 @@ export default function App() {
         const newFox = { id: Date.now(), x: Math.random() * 80 + 10, y: Math.random() * 60 + 20 };
         setFox(newFox);
         playSound('fox');
-        showToast("🦊 Uma Raposa apareceu! Rápido!", "error");
+        showToast(t('fox_appeared'), "error");
         setTimeout(() => {
           setFox(currentFox => {
             if (currentFox && currentFox.id === newFox.id) {
@@ -290,7 +369,7 @@ export default function App() {
       if (q.type === type && !q.completed) {
         const newProgress = q.progress + amount;
         if (newProgress >= q.target) {
-          showToast(`Missão Cumprida: ${q.desc}!`, 'success');
+          showToast(t('msg_mission_complete', [t(q.descKey || 'quest_unknown')]), 'success');
           playSound('success');
           return { ...q, progress: newProgress, completed: true };
         }
@@ -306,7 +385,7 @@ export default function App() {
       setBalance(prev => prev + quest.reward);
       addXp(10);
       setQuests(prev => prev.map(q => q.id === questId ? { ...q, claimed: true } : q));
-      showToast(`Recompensa recebida: +${quest.reward} moedas!`, 'success');
+      showToast(t('quest_claimed_msg', [quest.reward]), 'success');
       playSound('coin');
     }
   };
@@ -320,13 +399,13 @@ export default function App() {
     
     if (prize.type === 'COIN') {
       setBalance(prev => prev + prize.val);
-      showToast(`Ganhou ${prize.val} Moedas!`, 'success');
+      showToast(t('app_won_coins_wheel', [prize.val]), 'success');
     } else if (prize.type === 'ITEM') {
       setInventory(prev => {
         if (prize.item === 'feed') {
           const maxFeed = upgrades.SILO ? 100 : 20;
           if (prev.feed >= maxFeed) {
-            showToast("Silo cheio! Prêmio de ração perdido.", "error");
+            showToast(t('app_silo_full_wheel'), "error");
             return prev;
           }
           return { ...prev, feed: Math.min(prev.feed + prize.val, maxFeed) };
@@ -336,7 +415,7 @@ export default function App() {
           [prize.item]: prev[prize.item] + prize.val
         };
       });
-      if (prize.item !== 'feed') showToast(`Ganhou ${prize.val}x ${prize.label}!`, 'success');
+      if (prize.item !== 'feed') showToast(t('app_won_item_wheel', [prize.val, t(prize.labelKey)]), 'success');
     }
     
     if (prize.special) {
@@ -354,15 +433,15 @@ export default function App() {
         const next = prev + 1;
         if (next >= 500 && prev < 500) {
           playSound('achievement');
-          showToast("META DA COOPERATIVA ATINGIDA! +500 XP", "success");
+          showToast(t('app_coop_goal_reached'), "success");
           addXp(500);
         }
         return next;
       });
       addXp(5);
-      showToast("Doado para a Cooperativa! +5 XP", "success");
+      showToast(t('app_coop_donated'), "success");
     } else {
-      showToast("Sem ovos comuns para doar!", "error");
+      showToast(t('app_coop_no_eggs'), "error");
     }
   };
 
@@ -372,7 +451,7 @@ export default function App() {
       setChickens(prev => [...prev, {
         id: Date.now(),
         type: listing.type,
-        name: `Leiloada (${listing.type})`,
+        name: t('app_auction_prefix', [t(TYPE_CONFIG[listing.type].nameKey)]),
         age_days: listing.age,
         last_fed_day: dayCount,
         is_sick: false,
@@ -381,11 +460,11 @@ export default function App() {
       }]);
       setAuctionItems(prev => prev.filter(item => item.id !== listing.id));
       playSound('sold');
-      showToast(`Você comprou uma galinha ${listing.type}!`, 'success');
+      showToast(t('app_bought_animal', [t(TYPE_CONFIG[listing.type].nameKey)]), 'success');
     } else if (chickens.length >= maxCapacity) {
-      showToast("Galinheiro Cheio!", "error");
+      showToast(t('app_barn_full'), "error");
     } else {
-      showToast("Saldo Insuficiente!", "error");
+      showToast(t('msg_insufficient_funds'), "error");
     }
   };
 
@@ -394,7 +473,7 @@ export default function App() {
     setBalance(prev => prev + price);
     setChickens(prev => prev.filter(c => c.id !== chicken.id));
     playSound('sold');
-    showToast(`Galinha vendida no leilão por ${price} moedas!`, 'success');
+    showToast(t('app_sold_auction', [price]), 'success');
   };
 
   const handlePrestige = () => {
@@ -407,7 +486,7 @@ export default function App() {
     setXp(0);
     setMaxCapacity(4);
     setInventory({ feed: 5, vaccine: 0, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 });
-    setChickens([{ id: Date.now(), type: "GRANJA", name: "Renascida", age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0 }]);
+    setChickens([{ id: Date.now(), type: "GRANJA", name: t('app_rebirth_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0 }]);
     setAutomations({});
     setUpgrades({});
     setCoopProgress(0);
@@ -415,7 +494,7 @@ export default function App() {
     setCurrentSkin('DEFAULT'); // Reset da skin
     setMarketHistory(Array(7).fill({ common: 10, trend: 'STABLE' })); // Reset do mercado
     playSound('prestige');
-    showToast(`Ascensão Completa! +${eggsToGain} Ovos Dourados!`, 'success');
+    showToast(t('app_prestige_msg', [eggsToGain]), 'success');
     setView('COOP');
   };
 
@@ -434,7 +513,7 @@ export default function App() {
       if (bankBalance > 0) {
         const interest = Math.floor(bankBalance * 0.05);
         setBankBalance(prev => prev + interest);
-        if (interest > 0) showToast(`Rendimento do Banco: +${interest} moedas`, 'success');
+        if (interest > 0) showToast(t('app_interest_msg', [interest]), 'success');
       }
 
       if (automations.NUTRIBOT?.active) {
@@ -456,9 +535,9 @@ export default function App() {
         if (feedUsed > 0) {
            setChickens(nextChickens);
            setInventory(prev => ({ ...prev, feed: prev.feed - feedUsed }));
-           showToast(`NutriBot alimentou suas galinhas! (-${feedUsed} ração)`, "info");
+           showToast(t('app_nutribot_msg', [feedUsed]), "info");
         } else if (chickens.some(c => c.last_fed_day < nextDay)) {
-           showToast("NutriBot sem ração suficiente!", "error");
+           showToast(t('app_nutribot_fail'), "error");
         }
       }
 
@@ -467,7 +546,7 @@ export default function App() {
         Object.keys(nextState).forEach(key => {
           if (nextState[key].active) {
             nextState[key].daysLeft -= 1;
-            if (nextState[key].daysLeft <= 0) { nextState[key].active = false; showToast(`Aluguel do ${TECH_CONFIG[key].name} venceu!`, "error"); }
+            if (nextState[key].daysLeft <= 0) { nextState[key].active = false; showToast(t('tech_expired', [TECH_CONFIG[key].name]), "error"); }
           }
         });
         return nextState;
@@ -491,7 +570,7 @@ export default function App() {
 
       const randomNews = MARKET_NEWS[Math.floor(Math.random() * MARKET_NEWS.length)];
       setMarketNews(randomNews);
-      showToast(`Jornal: ${randomNews.title}`, 'info');
+      showToast(t('app_newspaper', [t(randomNews.titleKey)]), 'info');
 
       // Calcula novos preços baseados no anterior
       const nextCommon = generateNextPrice(marketPrices.common, BASE_PRICES.EGG_COMMON, randomNews.multiplier);
@@ -551,18 +630,18 @@ export default function App() {
   };
 
   const handleCollect = (chicken, e) => {
-    if (chicken.last_collected_day === dayCount) { showToast("Já coletado hoje!", "error"); return; }
+    if (chicken.last_collected_day === dayCount) { showToast(t('app_collected_today'), "error"); return; }
     const config = TYPE_CONFIG[chicken.type];
     const roll = Math.random();
     let eggType = 'eggs_common';
-    let label = '+1 Ovo';
+    let label = t('app_egg_label');
     let color = '#475569';
     let questType = 'COLLECT_COMMON';
     let isLegendary = false;
 
     if (roll < config.collectChance.legendary + config.collectChance.rare + config.collectChance.common) {
-       if (roll < config.collectChance.legendary) { eggType = 'eggs_legendary'; setLegendaryDrop('LEGENDARY'); label = 'LENDÁRIO!'; playSound('success'); isLegendary = true; }
-       else if (roll < config.collectChance.legendary + config.collectChance.rare) { eggType = 'eggs_rare'; setLegendaryDrop('RARE'); label = 'RARO!'; playSound('success'); questType = 'COLLECT_RARE'; }
+       if (roll < config.collectChance.legendary) { eggType = 'eggs_legendary'; setLegendaryDrop('LEGENDARY'); label = t('app_legendary_label'); playSound('success'); isLegendary = true; }
+       else if (roll < config.collectChance.legendary + config.collectChance.rare) { eggType = 'eggs_rare'; setLegendaryDrop('RARE'); label = t('app_rare_label'); playSound('success'); questType = 'COLLECT_RARE'; }
        else { eggType = 'eggs_common'; }
     }
     setInventory(prev => ({ ...prev, [eggType]: prev[eggType] + 1 }));
@@ -577,15 +656,15 @@ export default function App() {
     setBalance(prev => prev + totalValue);
     setInventory(prev => ({ ...prev, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 }));
     setStats(prev => ({ ...prev, total_earned: prev.total_earned + totalValue }));
-    showToast(`Vendeu tudo por ${totalValue} moedas!`, 'success');
+    showToast(t('app_sell_all_msg', [totalValue]), 'success');
   };
 
   const handleBuyAnimal = (product, e) => {
-    if (chickens.length >= maxCapacity) { showToast("Galinheiro Cheio! Expanda a cerca.", "error"); return; }
+    if (chickens.length >= maxCapacity) { showToast(t('app_barn_full_expand'), "error"); return; }
     if (balance >= product.priceCoins) {
       setBalance(prev => prev - product.priceCoins);
-      setChickens([...chickens, { id: Date.now(), type: product.type, name: `Nova ${product.name.split(' ')[1]}`, age_days: 30, last_fed_day: dayCount, is_sick: false, has_poop: false, last_collected_day: 0 }]);
-      showToast(`Comprou ${product.name}!`, 'success');
+      setChickens([...chickens, { id: Date.now(), type: product.type, name: t('app_new_animal_name', [t(product.nameKey).split(' ')[1]]), age_days: 30, last_fed_day: dayCount, is_sick: false, has_poop: false, last_collected_day: 0 }]);
+      showToast(t('app_bought_animal', [t(product.nameKey)]), 'success');
       addFloatingText(e.clientX, e.clientY, `-${product.priceCoins} 💰`, '#ef4444');
     }
   };
@@ -596,7 +675,7 @@ export default function App() {
       if (balance >= tech.price) {
         setBalance(prev => prev - tech.price);
         setAutomations(prev => ({ ...prev, [itemId]: { active: true, daysLeft: tech.duration } }));
-        showToast(`Alugou ${tech.name} por ${tech.duration} dias!`, 'success');
+        showToast(t('app_rented_tech', [t(tech.nameKey), tech.duration]), 'success');
         addFloatingText(e.clientX, e.clientY, `-${tech.price} 💰`, '#ef4444');
       }
       return;
@@ -606,7 +685,7 @@ export default function App() {
       if (balance >= upg.price) {
         setBalance(prev => prev - upg.price);
         setUpgrades(prev => ({ ...prev, [itemId]: true }));
-        showToast(`Construiu ${upg.name}!`, 'success');
+        showToast(t('app_built_upgrade', [t(upg.nameKey)]), 'success');
         addFloatingText(e.clientX, e.clientY, `-${upg.price} 💰`, '#ef4444');
       }
       return;
@@ -615,7 +694,7 @@ export default function App() {
     if (config && balance >= config.price) {
       if (itemId === 'FEED') {
         const maxFeed = upgrades.SILO ? 100 : 20;
-        if (inventory.feed >= maxFeed) { showToast(`Silo cheio! Máx: ${maxFeed}`, "error"); return; }
+        if (inventory.feed >= maxFeed) { showToast(t('app_silo_full_max', [maxFeed]), "error"); return; }
       }
       setBalance(prev => prev - config.price);
       if (itemId === 'FEED') {
@@ -625,9 +704,9 @@ export default function App() {
       else if (itemId === 'VACCINE') setInventory(prev => ({ ...prev, vaccine: prev.vaccine + config.quantity }));
       else if (itemId === 'EXPANSION') { 
         setMaxCapacity(prev => prev + config.quantity); 
-        showToast(`Galinheiro Expandido! (+${config.quantity} Vagas)`, "success"); 
+        showToast(t('app_barn_expanded', [config.quantity]), "success"); 
       }
-      if (itemId !== 'EXPANSION') showToast(`Comprou ${config.name}!`, 'success');
+      if (itemId !== 'EXPANSION') showToast(t('app_bought_item', [t(config.nameKey)]), 'success');
       addFloatingText(e.clientX, e.clientY, `-${config.price} 💰`, '#ef4444');
       updateQuestProgress('BUY_ITEM');
     }
@@ -642,14 +721,14 @@ export default function App() {
        if (balance >= skin.price) {
           setBalance(prev => prev - skin.price);
           setCurrentSkin(skin.id);
-          showToast(`Tema ${skin.name} aplicado!`, 'success');
+          showToast(t('app_theme_applied', [t(skin.nameKey)]), 'success');
           addFloatingText(e.clientX, e.clientY, `-${skin.price} 💰`, '#ef4444');
        } else {
-         showToast("Saldo insuficiente!", "error");
+         showToast(t('msg_insufficient_funds'), "error");
        }
     } else {
        setCurrentSkin(skin.id);
-       showToast(`Tema ${skin.name} aplicado!`, 'success');
+       showToast(t('app_theme_applied', [t(skin.nameKey)]), 'success');
     }
   };
   
@@ -658,9 +737,9 @@ export default function App() {
     if (inventory.feed >= config.feedConsumption) {
       setInventory(prev => ({ ...prev, feed: prev.feed - config.feedConsumption }));
       setChickens(prev => prev.map(c => c.id === chicken.id ? { ...c, last_fed_day: dayCount } : c));
-      showToast('Alimentada!', 'info');
+      showToast(t('app_fed_msg'), 'info');
       updateQuestProgress('FEED');
-    } else { showToast("Sem ração no Celeiro!", "error"); }
+    } else { showToast(t('app_no_feed_barn'), "error"); }
   };
   
   const handleHeal = (chicken) => {
@@ -668,8 +747,8 @@ export default function App() {
       setInventory(prev => ({ ...prev, vaccine: prev.vaccine - 1 }));
       setChickens(prev => prev.map(c => c.id === chicken.id ? { ...c, is_sick: false } : c));
       setStats(prev => ({ ...prev, total_healed: prev.total_healed + 1 }));
-      showToast('Curada!', 'success');
-    } else { showToast("Sem vacinas!", "error"); }
+      showToast(t('app_healed_msg'), 'success');
+    } else { showToast(t('app_no_vaccines'), "error"); }
   };
 
   const handleClean = (chicken, e) => {
@@ -677,7 +756,7 @@ export default function App() {
     addXp(10); 
     setStats(prev => ({ ...prev, total_cleaned: prev.total_cleaned + 1 }));
     addFloatingText(e.clientX, e.clientY, '+10 XP', '#3b82f6');
-    showToast('Limpeza realizada!', 'success');
+    showToast(t('app_clean_msg'), 'success');
     updateQuestProgress('CLEAN');
   };
 
@@ -688,8 +767,8 @@ export default function App() {
     setStats(prev => ({ ...prev, total_earned: prev.total_earned + commission }));
     playSound('success');
     addFloatingText(e.clientX, e.clientY, `+${commission} 💰`, '#22c55e');
-    showToast(`Comissão de ${levelConfig.label} recebida!`, 'success');
-    setReferralHistory(prev => [{ id: Date.now(), desc: `Indicado Nível ${levelConfig.level} comprou Gigante`, amount: commission }, ...prev]);
+    showToast(t('app_referral_commission', [levelConfig.label]), 'success');
+    setReferralHistory(prev => [{ id: Date.now(), desc: t('app_referral_history_desc', [levelConfig.level, 'Gigante']), amount: commission }, ...prev]);
   };
 
   const handleCloseAchievement = () => {
@@ -715,7 +794,7 @@ export default function App() {
       {session === 'GAME' && fox && <FoxComponent x={fox.x} y={fox.y} onClick={handleFoxClick} />}
 
       {session === 'AUTH' && <AuthScreen onLogin={() => setSession('UNBOXING')} />}
-      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: 1, type: "GRANJA", name: "Meu Pintinho", age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true, immune: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
+      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: 1, type: "GRANJA", name: t('app_starter_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true, immune: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
       
       {session === 'GAME' && (
         <div className="relative z-10 h-screen overflow-y-auto">
@@ -731,7 +810,10 @@ export default function App() {
                  <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[70] flex flex-col gap-4">
                    <button onClick={() => setView('CHASE')} className="bg-purple-600 hover:bg-purple-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-purple-400 animate-in zoom-in group relative">
                      <Gamepad2 size={32} fill="currentColor" className="group-hover:rotate-12 transition-transform"/>
-                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white animate-pulse">NOVO</span>
+                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white animate-pulse">{t('nav_new')}</span>
+                   </button>
+                   <button onClick={() => setView('HARVEST')} className="bg-green-600 hover:bg-green-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-green-400 animate-in zoom-in group relative">
+                     <Zap size={32} fill="currentColor" className="group-hover:scale-110 transition-transform"/>
                    </button>
                    {upgrades.LAB && (
                      <button onClick={() => setView('LAB')} className="bg-pink-500 hover:bg-pink-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-pink-400 animate-in zoom-in">
@@ -743,16 +825,16 @@ export default function App() {
                    </button>
                  </div>
                  <div className="mb-6 bg-white/60 backdrop-blur-sm p-4 rounded-2xl inline-block border-2 border-white/50 shadow-sm">
-                   <h1 className="text-2xl font-black text-slate-800 drop-shadow-sm">Galinheiro</h1>
-                   <p className="text-slate-700 font-medium text-xs sm:text-sm">Capacidade: {chickens.length} / {maxCapacity} aves</p>
+                   <h1 className="text-2xl font-black text-slate-800 drop-shadow-sm">{t('app_coop_title')}</h1>
+                   <p className="text-slate-700 font-medium text-xs sm:text-sm">{t('app_capacity', [chickens.length, maxCapacity])}</p>
                  </div>
-                 {chickens.length === 0 ? <div className="text-center bg-white/50 p-8 rounded-3xl">Galinheiro vazio.</div> : (
+                 {chickens.length === 0 ? <div className="text-center bg-white/50 p-8 rounded-3xl">{t('app_empty_barn')}</div> : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
                     {chickens.map(chicken => (<ChickenCard key={chicken.id} chicken={chicken} onFeed={handleFeed} onCollect={handleCollect} onHeal={handleHeal} onClean={handleClean} inventory={inventory} dayCount={dayCount} addFloatingText={addFloatingText} />))}
                     {chickens.length < maxCapacity ? (
-                      <div onClick={() => setView('STORE')} className="w-full min-h-[300px] rounded-3xl border-4 border-dashed border-white/60 bg-white/30 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-white hover:bg-white/50 hover:border-white cursor-pointer transition-all group shadow-lg"><ArrowUpCircle size={48} /><span className="font-black text-lg text-slate-800 drop-shadow-md">NOVA GALINHA</span></div>
+                      <div onClick={() => setView('STORE')} className="w-full min-h-[300px] rounded-3xl border-4 border-dashed border-white/60 bg-white/30 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-white hover:bg-white/50 hover:border-white cursor-pointer transition-all group shadow-lg"><ArrowUpCircle size={48} /><span className="font-black text-lg text-slate-800 drop-shadow-md">{t('app_new_chicken')}</span></div>
                     ) : (
-                      <div onClick={() => setView('STORE')} className="w-full min-h-[300px] rounded-3xl border-4 border-dashed border-red-300/60 bg-red-100/30 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-white hover:bg-red-100/50 cursor-pointer transition-all group shadow-lg"><Lock size={48} /><span className="font-black text-lg text-slate-800 drop-shadow-md text-center">CHEIO<br/><span className="text-xs">Compre Expansão</span></span></div>
+                      <div onClick={() => setView('STORE')} className="w-full min-h-[300px] rounded-3xl border-4 border-dashed border-red-300/60 bg-red-100/30 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-white hover:bg-red-100/50 cursor-pointer transition-all group shadow-lg"><Lock size={48} /><span className="font-black text-lg text-slate-800 drop-shadow-md text-center">{t('app_full')}<br/><span className="text-xs">{t('app_buy_expansion')}</span></span></div>
                     )}
                   </div>
                 )}
@@ -779,6 +861,8 @@ export default function App() {
               <ChickenChaseScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} />
             ) : view === 'RINHA' ? (
               <CockfightScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} />
+            ) : view === 'HARVEST' ? (
+              <HarvestGameScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} chickens={chickens} />
             ) : (
               <WalletScreen onBack={() => setView('COOP')} balance={balance} setBalance={setBalance} showToast={showToast} addFloatingText={addFloatingText} />
             )}

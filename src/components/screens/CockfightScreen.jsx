@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { X, Swords, Shield, Zap, Target, Coins, Trophy, Info, AlertTriangle, Play, ChevronRight, RefreshCw } from 'lucide-react';
 import { RINHA_CONFIG } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
+  const { t } = useLanguage();
   const [rooster, setRooster] = useState(() => {
-    const saved = localStorage.getItem('farm_rooster');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('farm_rooster');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error("Erro ao carregar galo:", e);
+      return null;
+    }
   });
 
   const [gameState, setGameState] = useState('MENU'); // MENU, SELECTING_ROOSTER, LOBBY, BATTLING, RESULT
@@ -27,7 +34,7 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
 
   const buyRooster = () => {
     if (balance < RINHA_CONFIG.ROOSTER_PRICE) {
-      showToast("Saldo insuficiente!", 'error');
+      showToast(t('msg_insufficient_funds'), 'error');
       return;
     }
     setBalance(prev => prev - RINHA_CONFIG.ROOSTER_PRICE);
@@ -38,19 +45,19 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
       color: 'VERMELHO'
     });
     playSound('cash');
-    showToast("Galo de briga adquirido!", 'success');
+    showToast(t('cockfight_rooster_acquired'), 'success');
   };
 
   const startBattle = () => {
     if (balance < bet) {
-      showToast("Saldo insuficiente para a aposta!", 'error');
+      showToast(t('cockfight_insufficient_bet'), 'error');
       return;
     }
 
     setBalance(prev => prev - bet);
     setIsProcessing(true);
     setGameState('BATTLING');
-    setBattleLog(["Sorteando arena..."]);
+    setBattleLog([t('cockfight_drawing_arena')]);
 
     // 1. Sorteia Arena
     const randomArena = RINHA_CONFIG.ARENAS[Math.floor(Math.random() * RINHA_CONFIG.ARENAS.length)];
@@ -61,10 +68,10 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
 
     setTimeout(() => {
       setArena(randomArena);
-      setBattleLog(prev => [...prev, `Arena selecionada: ${randomArena.name} ${randomArena.icon}`]);
+      setBattleLog(prev => [...prev, `${t('cockfight_arena_selected', [t(randomArena.nameKey)])} ${randomArena.icon}`]);
       
       setTimeout(() => {
-        setBattleLog(prev => [...prev, `Oponente apareceu: ${randomOpponent.name}!`]);
+        setBattleLog(prev => [...prev, t('cockfight_opponent_appeared', [t(randomOpponent.nameKey)])]);
         calculateResult(randomArena, randomOpponent);
       }, 1000);
     }, 1000);
@@ -89,7 +96,7 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
     const opponentFinal = oStrength * (1 + oArenaBonus) * (1 + oColorBonus);
 
     setTimeout(() => {
-      setBattleLog(prev => [...prev, "Calculando forças..."]);
+      setBattleLog(prev => [...prev, t('cockfight_calc_forces')]);
       
       setTimeout(() => {
         let result = '';
@@ -108,14 +115,14 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
           setBalance(prev => prev + reward);
           setRooster(prev => ({ ...prev, wins: prev.wins + 1, level: Math.floor((prev.wins + 1) / 5) + 1 }));
           playSound('success');
-          showToast(`VITÓRIA! Ganhou ${reward} moedas!`, 'success');
+          showToast(t('cockfight_win_msg', [reward]), 'success');
         } else if (result === 'DRAW') {
           setBalance(prev => prev + bet);
           playSound('neutral'); 
-          showToast(`EMPATE! Aposta de ${bet} moedas devolvida.`, 'info');
+          showToast(t('cockfight_draw_msg', [bet]), 'info');
         } else {
           playSound('error');
-          showToast("DERROTA! O oponente foi mais forte.", 'error');
+          showToast(t('cockfight_loss_msg'), 'error');
         }
         
         setGameState('RESULT');
@@ -133,22 +140,22 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
         <div className="flex items-center gap-3 mb-3">
           <div className="text-4xl animate-bounce">{isPlayer ? '🐓' : data.avatar || '🐓'}</div>
           <div>
-            <div className="font-black text-lg">{isPlayer ? 'Meu Galo' : data.name}</div>
-            <div className="text-xs font-bold opacity-70">Nível {data.level || 1}</div>
+            <div className="font-black text-lg">{isPlayer ? t('cockfight_my_rooster') : t(data.nameKey)}</div>
+            <div className="text-xs font-bold opacity-70">{t('cockfight_level_label', [data.level || 1])}</div>
           </div>
         </div>
         
         <div className="space-y-2">
           <div className="flex justify-between text-sm font-bold">
-            <span className="flex items-center gap-1"><Zap size={14} className="text-yellow-500"/> Elemento</span>
-            <span className={element.color}>{element.icon} {element.name}</span>
+            <span className="flex items-center gap-1"><Zap size={14} className="text-yellow-500"/> {t('cockfight_element')}</span>
+            <span className={element.color}>{element.icon} {t(element.nameKey)}</span>
           </div>
           <div className="flex justify-between text-sm font-bold">
-            <span className="flex items-center gap-1"><Shield size={14} className="text-blue-500"/> Cor</span>
-            <span style={{ color: color.hex }}>{color.name}</span>
+            <span className="flex items-center gap-1"><Shield size={14} className="text-blue-500"/> {t('cockfight_base_color')}</span>
+            <span style={{ color: color.hex }}>{t(color.nameKey)}</span>
           </div>
           <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
-            <span className="flex items-center gap-1"><Target size={14} className="text-red-500"/> Força Base</span>
+            <span className="flex items-center gap-1"><Target size={14} className="text-red-500"/> {t('cockfight_base_strength')}</span>
             <span>{element.base}</span>
           </div>
         </div>
@@ -169,13 +176,13 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
               <X size={20} />
             </button>
             <h1 className="text-2xl font-black italic tracking-tighter flex items-center gap-2">
-              <Swords className="text-yellow-400" /> RINHA DE GALOS
+              <Swords className="text-yellow-400" /> {t('cockfight_title')}
             </h1>
             <div className="bg-yellow-400 text-red-900 px-4 py-1 rounded-full font-black text-sm shadow-lg">
               💰 {balance}
             </div>
           </div>
-          <p className="text-red-100 text-xs font-bold uppercase tracking-widest opacity-80">Duelos Clandestinos de Elite</p>
+          <p className="text-red-100 text-xs font-bold uppercase tracking-widest opacity-80">{t('cockfight_subtitle')}</p>
         </div>
       </div>
 
@@ -183,25 +190,25 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
         {!rooster ? (
           <div className="bg-white rounded-3xl p-8 shadow-xl text-center border-b-8 border-red-100">
             <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl shadow-inner border-2 border-red-100">🐓</div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">Sem Lutador</h2>
-            <p className="text-slate-500 mb-8 font-medium">Você precisa de um galo de elite para entrar no circuito de rinha.</p>
+            <h2 className="text-2xl font-black text-slate-800 mb-2">{t('cockfight_no_fighter')}</h2>
+            <p className="text-slate-500 mb-8 font-medium">{t('cockfight_need_rooster')}</p>
             
             <div className="bg-slate-50 p-6 rounded-2xl mb-8 border-2 border-slate-100 flex items-center justify-between">
               <div className="text-left">
-                <span className="block text-xs font-black text-slate-400 uppercase">Investimento</span>
+                <span className="block text-xs font-black text-slate-400 uppercase">{t('cockfight_investment')}</span>
                 <span className="text-2xl font-black text-slate-800">{RINHA_CONFIG.ROOSTER_PRICE} 💰</span>
               </div>
               <button onClick={buyRooster} className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-black shadow-lg shadow-red-200 active:scale-95 transition-all">
-                COMPRAR AGORA
+                {t('cockfight_buy_now')}
               </button>
             </div>
             
             <div className="grid grid-cols-2 gap-4 text-left">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                <Shield size={14} className="text-blue-500" /> Evolua seu galo
+                <Shield size={14} className="text-blue-500" /> {t('cockfight_evolve')}
               </div>
               <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                <Trophy size={14} className="text-yellow-500" /> Ganhe recompensas
+                <Trophy size={14} className="text-yellow-500" /> {t('cockfight_rewards')}
               </div>
             </div>
           </div>
@@ -215,10 +222,10 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-4xl border-2 border-red-100 shadow-sm">🐓</div>
                       <div>
-                        <h3 className="font-black text-slate-800 text-xl">Lutador Atual</h3>
+                        <h3 className="font-black text-slate-800 text-xl">{t('cockfight_current_fighter')}</h3>
                         <div className="flex items-center gap-2">
-                          <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">NÍVEL {rooster.level}</span>
-                          <span className="text-xs font-bold text-slate-400">{rooster.wins} Vitórias</span>
+                          <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase">{t('cockfight_level')} {rooster.level}</span>
+                          <span className="text-xs font-bold text-slate-400">{t('cockfight_wins_label', [rooster.wins])}</span>
                         </div>
                       </div>
                     </div>
@@ -229,17 +236,17 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] font-black text-slate-400 uppercase block mb-1">Elemento</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase block mb-1">{t('cockfight_element')}</span>
                       <div className="flex items-center gap-2 font-bold text-slate-700">
                         <span>{RINHA_CONFIG.ELEMENTS[rooster.element].icon}</span>
-                        <span>{RINHA_CONFIG.ELEMENTS[rooster.element].name}</span>
+                        <span>{t(RINHA_CONFIG.ELEMENTS[rooster.element].nameKey)}</span>
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <span className="text-[10px] font-black text-slate-400 uppercase block mb-1">Cor Base</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase block mb-1">{t('cockfight_base_color')}</span>
                       <div className="flex items-center gap-2 font-bold text-slate-700">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: RINHA_CONFIG.COLORS[rooster.color].hex }}></div>
-                        <span>{RINHA_CONFIG.COLORS[rooster.color].name}</span>
+                        <span>{t(RINHA_CONFIG.COLORS[rooster.color].nameKey)}</span>
                       </div>
                     </div>
                   </div>
@@ -247,8 +254,8 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
 
                 {/* Seção de Aposta */}
                 <div className="bg-white rounded-3xl p-6 shadow-xl border-b-4 border-slate-200">
-                  <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <Coins className="text-yellow-500" /> VALOR DA APOSTA
+                  <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2 uppercase">
+                    <Coins className="text-yellow-500" /> {t('cockfight_bet_amount')}
                   </h3>
                   <div className="flex gap-2 mb-6">
                     {[10, 50, 100, 500].map(v => (
@@ -261,8 +268,8 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                       </button>
                     ))}
                   </div>
-                  <button onClick={startBattle} className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-red-200 border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2">
-                    BUSCAR OPONENTE <ChevronRight />
+                  <button onClick={startBattle} className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-red-200 border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-2 uppercase">
+                    {t('cockfight_find_opponent')} <ChevronRight />
                   </button>
                 </div>
               </div>
@@ -270,10 +277,10 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
 
             {gameState === 'SELECTING_ROOSTER' && (
               <div className="bg-white rounded-3xl p-6 shadow-xl space-y-6">
-                <h3 className="font-black text-slate-800 text-center">PERSONALIZAR LUTADOR</h3>
+                <h3 className="font-black text-slate-800 text-center uppercase">{t('cockfight_customize')}</h3>
                 
                 <div>
-                  <span className="text-xs font-black text-slate-400 uppercase block mb-3">Escolha o Elemento</span>
+                  <span className="text-xs font-black text-slate-400 uppercase block mb-3">{t('cockfight_choose_element')}</span>
                   <div className="grid grid-cols-2 gap-3">
                     {Object.values(RINHA_CONFIG.ELEMENTS).map(el => (
                       <button 
@@ -282,15 +289,15 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                         className={`p-4 rounded-2xl border-2 font-bold transition-all flex flex-col items-center gap-1 ${selectedElement === el.id ? 'border-red-500 bg-red-50 shadow-md' : 'border-slate-100 hover:border-slate-200'}`}
                       >
                         <span className="text-2xl">{el.icon}</span>
-                        <span className="text-sm">{el.name}</span>
-                        <span className="text-[10px] opacity-60">Base: {el.base}</span>
+                        <span className="text-sm">{t(el.nameKey)}</span>
+                        <span className="text-[10px] opacity-60 uppercase">{t('cockfight_base_strength')}: {el.base}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-xs font-black text-slate-400 uppercase block mb-3">Escolha a Cor</span>
+                  <span className="text-xs font-black text-slate-400 uppercase block mb-3">{t('cockfight_choose_color')}</span>
                   <div className="grid grid-cols-4 gap-3">
                     {Object.values(RINHA_CONFIG.COLORS).map(c => (
                       <button 
@@ -308,13 +315,13 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                     <div className="mt-4 bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between animate-in slide-in-from-top-2">
                        <div className="flex items-center gap-2">
                           <div className="w-4 h-4 rounded-full border border-slate-300" style={{backgroundColor: RINHA_CONFIG.COLORS[selectedColor].hex}}></div>
-                          <span className="font-bold text-slate-700 text-sm">{RINHA_CONFIG.COLORS[selectedColor].name}</span>
+                          <span className="font-bold text-slate-700 text-sm">{t(RINHA_CONFIG.COLORS[selectedColor].nameKey)}</span>
                        </div>
                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-green-600 uppercase">Vence</span>
+                          <span className="text-[10px] font-black text-green-600 uppercase">{t('cockfight_vence')}</span>
                           <ChevronRight size={14} className="text-slate-400"/>
                           <div className="w-4 h-4 rounded-full border border-slate-300" style={{backgroundColor: RINHA_CONFIG.COLORS[RINHA_CONFIG.COLORS[selectedColor].beats].hex}}></div>
-                          <span className="font-bold text-slate-700 text-sm">{RINHA_CONFIG.COLORS[RINHA_CONFIG.COLORS[selectedColor].beats].name}</span>
+                          <span className="font-bold text-slate-700 text-sm">{t(RINHA_CONFIG.COLORS[RINHA_CONFIG.COLORS[selectedColor].beats].nameKey)}</span>
                        </div>
                     </div>
                   )}
@@ -324,11 +331,11 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                   onClick={() => {
                     setRooster(prev => ({ ...prev, element: selectedElement, color: selectedColor }));
                     setGameState('MENU');
-                    showToast("Configuração salva!", 'success');
+                    showToast(t('cockfight_config_saved'), 'success');
                   }} 
-                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all"
+                  className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all uppercase"
                 >
-                  CONFIRMAR MUDANÇAS
+                  {t('cockfight_confirm_changes')}
                 </button>
               </div>
             )}
@@ -343,13 +350,13 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                   {arena ? (
                     <div className="text-center animate-in zoom-in duration-500 mb-8">
                       <div className="text-6xl mb-2">{arena.icon}</div>
-                      <h4 className="text-white font-black text-xl">{arena.name}</h4>
-                      <p className="text-red-400 text-xs font-bold uppercase">{arena.desc}</p>
+                      <h4 className="text-white font-black text-xl">{t(arena.nameKey)}</h4>
+                      <p className="text-red-400 text-xs font-bold uppercase">{t(arena.descKey)}</p>
                     </div>
                   ) : (
                     <div className="text-center animate-pulse">
                       <RefreshCw size={48} className="text-red-500 animate-spin mb-4 mx-auto" />
-                      <p className="text-white font-black">SORTEANDO ARENA...</p>
+                      <p className="text-white font-black uppercase">{t('cockfight_drawing_arena')}</p>
                     </div>
                   )}
 
@@ -374,13 +381,13 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                   <div className="text-6xl mb-4">
                     {winner === 'PLAYER' ? '👑' : winner === 'DRAW' ? '🤝' : '💀'}
                   </div>
-                  <h2 className="text-4xl font-black text-white mb-2">
-                    {winner === 'PLAYER' ? 'VENCEU!' : winner === 'DRAW' ? 'EMPATE!' : 'PERDEU!'}
+                  <h2 className="text-4xl font-black text-white mb-2 italic">
+                    {winner === 'PLAYER' ? t('cockfight_victory') : winner === 'DRAW' ? t('cockfight_draw') : t('cockfight_defeat')}
                   </h2>
                   <p className="text-white/90 font-bold mb-6">
-                    {winner === 'PLAYER' ? `Você faturou o prêmio de ${Math.floor(bet * 2 * (1 - RINHA_CONFIG.SYSTEM_FEE))} moedas!` : 
-                     winner === 'DRAW' ? 'Sua aposta foi devolvida integralmente.' : 
-                     'Melhore sua estratégia para a próxima.'}
+                    {winner === 'PLAYER' ? t('cockfight_win_prize', [Math.floor(bet * 2 * (1 - RINHA_CONFIG.SYSTEM_FEE))]) : 
+                     winner === 'DRAW' ? t('cockfight_draw_pity') : 
+                     t('cockfight_loss_pity')}
                   </p>
                   
                   {/* Resumo da Arena na Tela de Resultado */}
@@ -388,29 +395,29 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
                     <div className="flex items-center gap-3">
                       <div className="text-3xl">{arena?.icon}</div>
                       <div>
-                        <div className="text-[10px] text-white/60 font-black uppercase">Arena Sorteada</div>
-                        <div className="text-sm font-black text-white">{arena?.name}</div>
+                        <div className="text-[10px] text-white/60 font-black uppercase">{t('cockfight_arena_drawn')}</div>
+                        <div className="text-sm font-black text-white">{t(arena?.nameKey)}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                       <div className="text-[10px] text-white/60 font-black uppercase">Efeito</div>
-                       <div className="text-xs font-black text-yellow-300">{arena?.desc}</div>
+                       <div className="text-[10px] text-white/60 font-black uppercase">{t('cockfight_effect')}</div>
+                       <div className="text-xs font-black text-yellow-300">{t(arena?.descKey)}</div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-black/20 p-4 rounded-2xl">
-                      <span className="text-[10px] font-black text-white/60 uppercase block">Meu Galo</span>
-                      <span className="text-2xl font-black text-white">LVL {rooster.level}</span>
+                      <span className="text-[10px] font-black text-white/60 uppercase block">{t('cockfight_my_rooster')}</span>
+                      <span className="text-2xl font-black text-white">{t('cockfight_level')} {rooster.level}</span>
                     </div>
                     <div className="bg-black/20 p-4 rounded-2xl">
-                      <span className="text-[10px] font-black text-white/60 uppercase block">Total Vitórias</span>
+                      <span className="text-[10px] font-black text-white/60 uppercase block">{t('cockfight_total_wins')}</span>
                       <span className="text-2xl font-black text-white">{rooster.wins}</span>
                     </div>
                   </div>
 
-                  <button onClick={() => setGameState('MENU')} className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black shadow-lg hover:bg-slate-100 transition-all active:scale-95">
-                    VOLTAR AO MENU
+                  <button onClick={() => setGameState('MENU')} className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black shadow-lg hover:bg-slate-100 transition-all active:scale-95 uppercase">
+                    {t('cockfight_back_menu')}
                   </button>
                 </div>
 
@@ -428,10 +435,9 @@ const CockfightScreen = ({ onBack, balance, setBalance, showToast }) => {
           <div className="mt-8 bg-blue-50 rounded-2xl p-4 border border-blue-100 flex gap-3">
             <Info size={24} className="text-blue-500 shrink-0" />
             <div>
-              <h4 className="font-black text-blue-900 text-sm">COMO FUNCIONA?</h4>
+              <h4 className="font-black text-blue-900 text-sm uppercase">{t('cockfight_how_works')}</h4>
               <p className="text-blue-700 text-[10px] font-bold leading-tight mt-1">
-                A força final depende do <span className="underline">Elemento</span>, da <span className="underline">Arena</span> sorteada e da <span className="underline">Vantagem de Cor</span>.
-                Cores seguem: Vermelho ➔ Azul ➔ Verde ➔ Amarelo ➔ Vermelho.
+                {t('cockfight_how_works_desc')}
               </p>
             </div>
           </div>
