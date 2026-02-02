@@ -50,18 +50,22 @@ export const MINIGAME_CONFIG = {
 
 export const RINHA_CONFIG = {
   ROOSTER_PRICE: 1000,
-  SYSTEM_FEE: 0.10, // 10% fee (Player gets 100% bet + 80% of opponent)
+  SYSTEM_FEE: 0.10, // 10% fee (Player gets 1.8x on win)
+  BATTLE_DURATION: 15000, // 15 seconds
+  MIN_ROUNDS: 6,
+  MAX_ROUNDS: 8,
+  CONVERSION_RATE: 100, // $1 = 100 RC
   ELEMENTS: {
-    FOGO: { id: 'FOGO', nameKey: "element_FOGO_name", name: 'Fogo', base: 100, icon: '🔥', color: 'text-red-500' },
-    TERRA: { id: 'TERRA', nameKey: "element_TERRA_name", name: 'Terra', base: 95, icon: '🌱', color: 'text-amber-700' },
-    AGUA: { id: 'AGUA', nameKey: "element_AGUA_name", name: 'Água', base: 90, icon: '💧', color: 'text-blue-500' },
-    AR: { id: 'AR', nameKey: "element_AR_name", name: 'Ar', base: 85, icon: '💨', color: 'text-slate-400' }
+    FOGO: { id: 'FOGO', nameKey: "element_FOGO_name", name: 'Fogo', base: 100, icon: '🔥', color: 'text-red-500', glow: 'shadow-red-500/50' },
+    TERRA: { id: 'TERRA', nameKey: "element_TERRA_name", name: 'Terra', base: 95, icon: '🌱', color: 'text-amber-700', glow: 'shadow-amber-700/50' },
+    AGUA: { id: 'AGUA', nameKey: "element_AGUA_name", name: 'Água', base: 90, icon: '💧', color: 'text-blue-500', glow: 'shadow-blue-500/50' },
+    AR: { id: 'AR', nameKey: "element_AR_name", name: 'Ar', base: 85, icon: '💨', color: 'text-slate-400', glow: 'shadow-slate-400/50' }
   },
   COLORS: {
-    VERMELHO: { id: 'VERMELHO', nameKey: "color_VERMELHO_name", name: 'Vermelho', hex: '#ef4444', beats: 'AZUL' },
-    AZUL: { id: 'AZUL', nameKey: "color_AZUL_name", name: 'Azul', hex: '#3b82f6', beats: 'VERDE' },
-    VERDE: { id: 'VERDE', nameKey: "color_VERDE_name", name: 'Verde', hex: '#22c55e', beats: 'AMARELO' },
-    AMARELO: { id: 'AMARELO', nameKey: "color_AMARELO_name", name: 'Amarelo', hex: '#eab308', beats: 'VERMELHO' }
+    VERMELHO: { id: 'VERMELHO', nameKey: "color_VERMELHO_name", name: 'Vermelho', hex: '#ef4444', beats: 'AZUL', secondary: '#991b1b' },
+    AZUL: { id: 'AZUL', nameKey: "color_AZUL_name", name: 'Azul', hex: '#3b82f6', beats: 'VERDE', secondary: '#1e40af' },
+    VERDE: { id: 'VERDE', nameKey: "color_VERDE_name", name: 'Verde', hex: '#22c55e', beats: 'AMARELO', secondary: '#166534' },
+    AMARELO: { id: 'AMARELO', nameKey: "color_AMARELO_name", name: 'Amarelo', hex: '#eab308', beats: 'VERMELHO', secondary: '#854d0e' }
   },
   ARENAS: [
     { id: 1, nameKey: "arena_1_name", descKey: "arena_1_desc", name: 'Arena de Terra', advantage: 'TERRA', bonus: 0.25, icon: '⛰️', desc: 'Favorece galos terrestres' },
