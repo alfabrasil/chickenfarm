@@ -143,7 +143,39 @@ export default function App() {
     }
   });
 
-  const [goldenEggs, setGoldenEggs] = useState(() => Number(localStorage.getItem('farm_golden_eggs')) || 0);
+  const [goldenEggs, setGoldenEggs] = useState(() => {
+    const val = Number(localStorage.getItem('farm_golden_eggs'));
+    return isNaN(val) ? 0 : val;
+  });
+
+  // MIGRAÇÃO DE NOMES (Auto-fix para tradução dinâmica)
+  useEffect(() => {
+    setChickens(prev => prev.map(c => {
+      // Se já tem nameKey, retorna igual
+      if (c.nameKey) return c;
+
+      let newKey = null;
+      
+      if (c.is_starter) {
+         newKey = 'starter_chicken_name';
+      }
+      // Tenta recuperar nameKey da variante salva
+      else if (c.variant && c.variant.nameKey) {
+        newKey = c.variant.nameKey;
+      } 
+      // Se não, tenta pelo tipo (se não for mestiço sem variante)
+      else if (c.type && !c.name?.includes("Mestiça") && !c.name?.includes("Hybrid")) {
+         newKey = `chicken_name_${c.type}`;
+      }
+      
+      // Se encontrou uma chave, atualiza
+      if (newKey) {
+        return { ...c, nameKey: newKey };
+      }
+      
+      return c;
+    }));
+  }, []);
 
   const [referralHistory, setReferralHistory] = useState([]);
   const [weather, setWeather] = useState(() => localStorage.getItem('farm_weather') || 'SUNNY'); 
@@ -546,7 +578,7 @@ export default function App() {
         Object.keys(nextState).forEach(key => {
           if (nextState[key].active) {
             nextState[key].daysLeft -= 1;
-            if (nextState[key].daysLeft <= 0) { nextState[key].active = false; showToast(t('tech_expired', [TECH_CONFIG[key].name]), "error"); }
+            if (nextState[key].daysLeft <= 0) { nextState[key].active = false; showToast(t('tech_expired', [t(TECH_CONFIG[key].nameKey)]), "error"); }
           }
         });
         return nextState;
@@ -596,7 +628,8 @@ export default function App() {
            type: Math.random() > 0.5 ? 'CAIPIRA' : 'GIGANTE', 
            age: Math.floor(Math.random() * 30) + 1, 
            price: Math.floor(Math.random() * 500) + 300, 
-           expires: '12h' 
+           expiresKey: 'auction_expires_h',
+           expiresVal: 12
          }]);
       }
 
@@ -663,7 +696,18 @@ export default function App() {
     if (chickens.length >= maxCapacity) { showToast(t('app_barn_full_expand'), "error"); return; }
     if (balance >= product.priceCoins) {
       setBalance(prev => prev - product.priceCoins);
-      setChickens([...chickens, { id: Date.now(), type: product.type, name: t('app_new_animal_name', [t(product.nameKey).split(' ')[1]]), age_days: 30, last_fed_day: dayCount, is_sick: false, has_poop: false, last_collected_day: 0 }]);
+      const nameKey = `chicken_name_${product.type}`;
+      setChickens([...chickens, { 
+        id: Date.now(), 
+        type: product.type, 
+        nameKey: nameKey,
+        name: t(nameKey), 
+        age_days: 30, 
+        last_fed_day: dayCount, 
+        is_sick: false, 
+        has_poop: false, 
+        last_collected_day: 0 
+      }]);
       showToast(t('app_bought_animal', [t(product.nameKey)]), 'success');
       addFloatingText(e.clientX, e.clientY, `-${product.priceCoins} 💰`, '#ef4444');
     }

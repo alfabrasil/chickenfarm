@@ -109,9 +109,9 @@ export const STORE_ANIMALS = [
 ];
 
 export const AUCTION_MOCK_INITIAL = [
-  { id: 'auc1', seller: 'FazendaX', type: 'GIGANTE', age: 12, price: 850, expires: '2h' },
-  { id: 'auc2', seller: 'ReiDoOvo', type: 'CAIPIRA', age: 45, price: 300, expires: '5h' },
-  { id: 'auc3', seller: 'MariaFarm', type: 'GIGANTE', age: 5, price: 900, expires: '30m' },
+  { id: 'auc1', seller: 'FazendaX', type: 'GIGANTE', age: 12, price: 850, expiresKey: 'auction_expires_h', expiresVal: 2 },
+  { id: 'auc2', seller: 'ReiDoOvo', type: 'CAIPIRA', age: 45, price: 300, expiresKey: 'auction_expires_h', expiresVal: 5 },
+  { id: 'auc3', seller: 'MariaFarm', type: 'GIGANTE', age: 5, price: 900, expiresKey: 'auction_expires_m', expiresVal: 30 },
 ];
 
 export const LEADERBOARD_MOCK = [
@@ -128,11 +128,11 @@ export const LEADERBOARD_MOCK = [
 ];
 
 export const REFERRAL_LEVELS = [
-  { level: 1, percent: 0.10, label: '1º Nível (Direto)' },
-  { level: 2, percent: 0.05, label: '2º Nível' },
-  { level: 3, percent: 0.02, label: '3º Nível' },
-  { level: 4, percent: 0.02, label: '4º Nível' },
-  { level: 5, percent: 0.01, label: '5º Nível' },
+  { level: 1, percent: 0.10, labelKey: 'referral_level_1' },
+  { level: 2, percent: 0.05, labelKey: 'referral_level_2' },
+  { level: 3, percent: 0.02, labelKey: 'referral_level_3' },
+  { level: 4, percent: 0.02, labelKey: 'referral_level_4' },
+  { level: 5, percent: 0.01, labelKey: 'referral_level_5' },
 ];
 
 export const QUEST_POOL = [

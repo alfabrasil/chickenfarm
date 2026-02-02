@@ -7,15 +7,16 @@ const GRID_SIZE = 6;
 const CELL_SIZE = 100; // Porcentagem para o CSS grid
 
 const ITEMS = {
-  CORN: { id: 'CORN', name: 'Milho', icon: '🌽', points: 1, chance: 0.40 },
-  WORM: { id: 'WORM', name: 'Minhoca', icon: '🐛', points: 2, chance: 0.25 },
-  GOLDEN_EGG: { id: 'GOLDEN_EGG', name: 'Ovo Dourado', icon: '🥚', points: 5, chance: 0.05 },
-  PEPPER: { id: 'PEPPER', name: 'Pimenta', icon: '🌶️', effect: 'SPEED', duration: 3, chance: 0.15 },
-  ROTTEN_EGG: { id: 'ROTTEN_EGG', name: 'Ovo Podre', icon: '💩', points: -2, chance: 0.10 },
-  SHIELD: { id: 'SHIELD', name: 'Escudo', icon: '🛡️', effect: 'SHIELD', duration: 2, chance: 0.05 }
+  CORN: { id: 'CORN', nameKey: 'harvest_item_corn', icon: '🌽', points: 1, chance: 0.40 },
+  WORM: { id: 'WORM', nameKey: 'harvest_item_worm', icon: '🐛', points: 2, chance: 0.25 },
+  GOLDEN_EGG: { id: 'GOLDEN_EGG', nameKey: 'harvest_item_golden_egg', icon: '🥚', points: 5, chance: 0.05 },
+  PEPPER: { id: 'PEPPER', nameKey: 'harvest_item_pepper', icon: '🌶️', effect: 'SPEED', duration: 3, chance: 0.15 },
+  ROTTEN_EGG: { id: 'ROTTEN_EGG', nameKey: 'harvest_item_rotten_egg', icon: '💩', points: -2, chance: 0.10 },
+  SHIELD: { id: 'SHIELD', nameKey: 'harvest_item_shield', icon: '🛡️', effect: 'SHIELD', duration: 2, chance: 0.05 }
 };
 
 const HarvestEngine = ({ config, onFinish, showToast }) => {
+  const { t } = useLanguage();
   const passive = config.selectedChicken ? MINIGAME_CONFIG.HARVEST.PASSIVES[config.selectedChicken.type] : null;
   const baseSpeed = passive?.bonus === 'SPEED_BASE' ? (1 + passive.value) : 1;
 
@@ -169,7 +170,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
           newShield--;
           newScore = prev.score; // Não perde pontos
           playSound('achievement');
-          showToast("Escudo Protegeu!", "info");
+          showToast(t('harvest_msg_shield_protected'), "info");
           return { ...prev, x: nx, y: ny, score: newScore, shield: newShield };
         }
 
@@ -285,7 +286,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
       <div className="flex justify-between items-center mb-6">
         <div className="bg-white/10 p-4 rounded-3xl border border-white/10 backdrop-blur-md flex items-center gap-4">
           <div className="text-center">
-            <div className="text-[10px] font-black text-green-400 uppercase tracking-widest">Você</div>
+            <div className="text-[10px] font-black text-green-400 uppercase tracking-widest">{t('harvest_you')}</div>
             <div className="text-2xl font-black text-white">{player.score}</div>
           </div>
           <div className="w-px h-8 bg-white/20" />
@@ -300,8 +301,8 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
           <div className="hidden sm:flex bg-green-500/20 border border-green-500/50 px-4 py-2 rounded-2xl items-center gap-3 animate-in slide-in-from-top-2">
             <div className="text-2xl">{passive.icon}</div>
             <div>
-              <div className="text-[8px] font-black text-green-400 uppercase leading-none mb-1">{passive.label} Ativo</div>
-              <div className="text-[10px] text-white font-bold leading-none">{passive.desc}</div>
+              <div className="text-[8px] font-black text-green-400 uppercase leading-none mb-1">{t(passive.labelKey)} {t('harvest_active')}</div>
+              <div className="text-[10px] text-white font-bold leading-none">{t(passive.descKey)}</div>
             </div>
           </div>
         )}
@@ -358,7 +359,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
                       <div className="text-4xl animate-bounce">🐔</div>
                       {player.speed > 1 && <div className="absolute -bottom-1 -right-1 text-xl animate-pulse">🌶️</div>}
                       {player.shield > 0 && <div className="absolute -top-1 -left-1 text-xl animate-spin">🛡️</div>}
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full border border-white whitespace-nowrap shadow-sm">VOCÊ</div>
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full border border-white whitespace-nowrap shadow-sm uppercase">{t('harvest_you')}</div>
                     </div>
                   </div>
                 )}
@@ -383,7 +384,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
               <div className="text-9xl font-black text-white animate-ping drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
                 {countdown}
               </div>
-              <div className="text-white font-black mt-8 tracking-[1em] uppercase opacity-50">Prepare-se!</div>
+              <div className="text-white font-black mt-8 tracking-[1em] uppercase opacity-50">{t('harvest_prepare')}</div>
             </div>
           </div>
         )}
@@ -401,7 +402,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
 
       {/* Dica */}
       <div className="text-center mt-6 text-slate-500 font-bold text-[10px] uppercase tracking-widest hidden md:block">
-        Use WASD ou Setas para se mover e empurrar o oponente!
+        {t('harvest_controls_tip')}
       </div>
     </div>
   );

@@ -117,7 +117,7 @@ const HarvestGameScreen = ({ onBack, balance, setBalance, showToast, chickens })
               <Zap className="text-yellow-300 fill-yellow-300" size={20} />
               {t('harvest_lobby_title')}
             </h1>
-            <p className="text-green-100 text-[10px] font-bold tracking-widest uppercase">Arena PvP PvP</p>
+            <p className="text-green-100 text-[10px] font-bold tracking-widest uppercase">{t('harvest_arena_pvp')}</p>
           </div>
         </div>
 

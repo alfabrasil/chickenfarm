@@ -62,7 +62,7 @@ const HarvestTreasury = ({ history, onBack }) => {
               <div className="flex items-center gap-2 text-indigo-300 text-[10px] font-black uppercase tracking-widest mb-1">
                 <Timer size={14} /> {t('harvest_next_draw')}
               </div>
-              <div className="text-lg font-black text-white">Dom, 20:00</div>
+              <div className="text-lg font-black text-white">{t('harvest_draw_date')}</div>
             </div>
           </div>
 

@@ -59,19 +59,29 @@ const GeneticsLabScreen = ({ onBack, chickens, balance, setBalance, setChickens,
       let variant = null;
       let specialName = `Exp. #${Math.floor(Math.random()*999)}`;
       let isSpecial = false;
+      let nameKey = null;
+      let nameParams = null;
 
       if (VARIANT_MAP[newType]) {
         const variants = VARIANT_MAP[newType];
         variant = variants[Math.floor(Math.random() * variants.length)];
-        specialName = t(variant.nameKey);
+        nameKey = variant.nameKey;
+        specialName = t(nameKey);
         isSpecial = true;
       } else if (parent1.type !== parent2.type && Math.random() < 0.5) {
-         specialName = t('genetics_variant_mestic', [`${parent1.type.substring(0,3)}${parent2.type.substring(0,3)}`]);
+         nameKey = 'genetics_variant_mestic';
+         nameParams = [`${parent1.type.substring(0,3)}${parent2.type.substring(0,3)}`];
+         specialName = t(nameKey, nameParams);
+      } else {
+         nameKey = `chicken_name_${newType}`;
+         specialName = t(nameKey);
       }
 
       const baby = { 
         id: Date.now(), 
         type: newType, 
+        nameKey,
+        nameParams,
         name: specialName, 
         variant: variant, // Armazena o objeto completo da variante
         age_days: 0, 

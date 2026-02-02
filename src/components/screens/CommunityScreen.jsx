@@ -27,7 +27,7 @@ const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProg
             <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2"><Zap className="text-yellow-500" size={20}/> {t('comm_earnings_simulator')}</h3>
             <div className="grid grid-cols-1 gap-2">
               {REFERRAL_LEVELS.map((lvl) => (
-                <button key={lvl.level} onClick={(e) => onSimulateReferral(lvl, e)} className="flex items-center justify-between p-3 bg-slate-50 hover:bg-green-50 active:scale-95 transition-all rounded-xl border border-slate-200 hover:border-green-300 group"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200 group-hover:bg-green-500 group-hover:text-white flex items-center justify-center font-bold text-xs transition-colors">{lvl.level}º</div><span className="font-bold text-slate-600 group-hover:text-green-700">{lvl.label}</span></div><div className="text-right"><span className="text-xs text-slate-400 block">Comissão {(lvl.percent * 100)}%</span><span className="font-black text-green-600 text-lg">+{Math.floor(1000 * lvl.percent)} 💰</span></div></button>
+                <button key={lvl.level} onClick={(e) => onSimulateReferral(lvl, e)} className="flex items-center justify-between p-3 bg-slate-50 hover:bg-green-50 active:scale-95 transition-all rounded-xl border border-slate-200 hover:border-green-300 group"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-slate-200 group-hover:bg-green-500 group-hover:text-white flex items-center justify-center font-bold text-xs transition-colors">{lvl.level}º</div><span className="font-bold text-slate-600 group-hover:text-green-700">{t(lvl.labelKey)}</span></div><div className="text-right"><span className="text-xs text-slate-400 block">Comissão {(lvl.percent * 100)}%</span><span className="font-black text-green-600 text-lg">+{Math.floor(1000 * lvl.percent)} 💰</span></div></button>
               ))}
             </div>
           </div>
@@ -71,7 +71,7 @@ const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProg
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <span className="font-black text-slate-700 text-sm">{listing.type} <span className="font-normal text-slate-400">({listing.age} {t('chicken_age_days')})</span></span>
-                        <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Clock size={10}/> {listing.expires}</span>
+                        <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Clock size={10}/> {listing.expiresKey ? t(listing.expiresKey, [listing.expiresVal]) : listing.expires}</span>
                       </div>
                       <div className="text-xs text-slate-500">{t('comm_seller')}: {listing.seller}</div>
                     </div>

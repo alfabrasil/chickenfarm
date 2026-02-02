@@ -24,11 +24,11 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
   
   // Mock Challenges Book
   const [challenges, setChallenges] = useState([
-    { id: 'c1', player: 'ReiDoOvo', bet: 50, avatar: '👑' },
+    { id: 'c1', player: t('harvest_pvp_mock_1'), bet: 50, avatar: '👑' },
     { id: 'c2', player: 'CryptoFarmer', bet: 100, avatar: '🚀' },
     { id: 'c3', player: 'NoobMaster', bet: 10, avatar: '👶' },
     { id: 'c4', player: 'RichDuck', bet: 500, avatar: '🦆' },
-    { id: 'c5', player: 'LuckyHen', bet: 20, avatar: '🐔' },
+    { id: 'c5', player: t('harvest_bot_1'), bet: 20, avatar: '🐔' },
   ]);
 
   // --- SOLO FUNCTIONS ---

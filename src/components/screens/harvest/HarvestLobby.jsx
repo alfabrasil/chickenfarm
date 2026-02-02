@@ -26,8 +26,8 @@ const HarvestLobby = ({ onStart, onViewHistory, onViewTreasury, history = [] }) 
             <div>
               <h2 className="text-2xl font-black text-slate-800 leading-tight">{t('harvest_lobby_title')}</h2>
               <div className="flex gap-2 mt-1">
-                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Multiplayer PvP</span>
-                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">180% Prize</span>
+                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{t('harvest_multiplayer_pvp')}</span>
+                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{t('harvest_prize_percentage', [180])}</span>
               </div>
             </div>
           </div>

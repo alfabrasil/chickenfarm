@@ -21,15 +21,15 @@ const HarvestSetup = ({ onBack, onConfirm, balance, chickens = [] }) => {
   const times = [60, 120, 180];
 
   const bots = [
-    { id: 'bot1', name: 'GalinhoBot', avatar: '🤖', difficulty: 'EASY' },
-    { id: 'bot2', name: 'PintinhoRápido', avatar: '🚀', difficulty: 'MEDIUM' },
-    { id: 'bot3', name: 'MestreColheita', avatar: '👑', difficulty: 'HARD' }
+    { id: 'bot1', name: t('harvest_bot_1'), avatar: '🤖', difficulty: 'EASY' },
+    { id: 'bot2', name: t('harvest_bot_2'), avatar: '🚀', difficulty: 'MEDIUM' },
+    { id: 'bot3', name: t('harvest_bot_3'), avatar: '👑', difficulty: 'HARD' }
   ];
 
   const pvpMocks = [
-    { id: 'p1', name: 'ReiDoMilho', avatar: '🤴', bet: 50 },
-    { id: 'p2', name: 'FazendeiroTop', avatar: '👨‍🌾', bet: 100 },
-    { id: 'p3', name: 'GalinhaNinja', avatar: '🥷', bet: 250 }
+    { id: 'p1', name: t('harvest_pvp_mock_1'), avatar: '🤴', bet: 50 },
+    { id: 'p2', name: t('harvest_pvp_mock_2'), avatar: '👨‍🌾', bet: 100 },
+    { id: 'p3', name: t('harvest_pvp_mock_3'), avatar: '🥷', bet: 250 }
   ];
 
   const handleConfirm = () => {
@@ -88,7 +88,9 @@ const HarvestSetup = ({ onBack, onConfirm, balance, chickens = [] }) => {
                 >
                   {isSelected && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1 shadow-lg"><CheckCircle2 size={16} /></div>}
                   <div className="text-3xl mb-2">{chicken.icon || '🐔'}</div>
-                  <div className="font-black text-slate-800 text-xs truncate mb-1">{chicken.name}</div>
+                  <div className="font-black text-slate-800 text-xs truncate mb-1">
+                    {chicken.nameKey ? t(chicken.nameKey, chicken.nameParams) : chicken.name}
+                  </div>
                   {passive && (
                     <div className="bg-slate-100 rounded-xl p-2 mt-2">
                       <div className="flex items-center gap-1 text-[8px] font-black text-green-600 uppercase">
