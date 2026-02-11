@@ -115,7 +115,8 @@ const generateCacheAndPool = () => {
         'cash': { type: 'sine', freq: 1000, dur: 0.2 },
         'dna': { type: 'triangle', freq: 450, dur: 0.8 },
         'neutral': { type: 'sine', freq: 300, dur: 0.3 },
-        'error': { type: 'sawtooth', freq: 100, dur: 0.3 }
+        'error': { type: 'sawtooth', freq: 100, dur: 0.3 },
+        'angry': { type: 'sawtooth', freq: 250, dur: 0.4 }
       };
 
       Object.entries(sounds).forEach(([key, config]) => {
@@ -421,5 +422,29 @@ export const playSound = (type) => {
     gain.gain.linearRampToValueAtTime(0, now + 0.3);
     osc.start(now);
     osc.stop(now + 0.3);
+  } else if (type === 'angry') {
+    // Cacarejo ríspido (modulação rápida de sawtooth)
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.linearRampToValueAtTime(400, now + 0.1);
+    osc.frequency.linearRampToValueAtTime(200, now + 0.2);
+    osc.frequency.linearRampToValueAtTime(350, now + 0.3);
+    
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    
+    // LFO para vibrato/aspereza
+    const lfo = ctx.createOscillator();
+    lfo.type = 'square';
+    lfo.frequency.value = 20; // 20Hz vibrato
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 50;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start(now);
+    lfo.stop(now + 0.4);
+
+    osc.start(now);
+    osc.stop(now + 0.4);
   }
 };

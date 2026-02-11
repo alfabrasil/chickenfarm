@@ -1,12 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Lock, BatteryCharging, ShieldCheck, PaintBucket } from 'lucide-react';
 import { STORE_ANIMALS, TYPE_CONFIG, ITEMS_CONFIG, TECH_CONFIG, UPGRADE_CONFIG, SKINS_CONFIG } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTutorial, TUTORIAL_STEPS } from '../../contexts/TutorialContext';
+import ChickenVisual from '../game/ChickenVisual';
 
 const StoreScreen = ({ onBack, onBuyAnimal, onBuyItem, balance, level, addFloatingText, automations, upgrades, currentSkin, onBuySkin }) => {
   const { t } = useLanguage();
+  const { currentStep, advanceStep } = useTutorial();
   const [tab, setTab] = useState('ANIMALS'); 
+
+  // Tutorial Logic: If user enters Store to buy vaccine, switch to ITEMS tab
+  useEffect(() => {
+    if (currentStep === TUTORIAL_STEPS.GO_TO_SHOP_VACCINE) {
+      setTab('ITEMS');
+      advanceStep(TUTORIAL_STEPS.BUY_VACCINE);
+    }
+  }, [currentStep]);
+
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in pb-24 md:pb-0">
       <div className="flex items-center gap-2 mb-4"><button onClick={onBack} className="bg-white p-2 rounded-full shadow-md"><X size={24}/></button><h1 className="text-2xl font-black text-slate-800 bg-white/50 px-3 py-1 rounded-xl">{t('store_title')}</h1></div>
@@ -19,8 +31,22 @@ const StoreScreen = ({ onBack, onBuyAnimal, onBuyItem, balance, level, addFloati
       </div>
       
       <div className="space-y-4">
-        {tab === 'ANIMALS' ? STORE_ANIMALS.map(p => { const isLocked = level < p.minLevel; const canAfford = balance >= p.priceCoins; return (<div key={p.type} className={`bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4 relative overflow-hidden ${isLocked ? 'grayscale opacity-80' : ''}`}>{isLocked && <div className="absolute inset-0 bg-slate-200/50 backdrop-blur-[1px] z-10 flex items-center justify-center"><div className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg"><Lock size={16} /> {t('store_level_req', [p.minLevel])}</div></div>}<div className={`text-4xl w-16 h-16 flex items-center justify-center rounded-2xl ${TYPE_CONFIG[p.type].color} border-2 ${TYPE_CONFIG[p.type].border}`}>{TYPE_CONFIG[p.type].icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t(`animal_${p.type}_name`)}</h3><p className="text-xs text-slate-500">{t(`animal_${p.type}_desc`)}</p></div><button disabled={isLocked || !canAfford} onClick={(e)=>{onBuyAnimal(p, e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{p.priceCoins} 💰</button></div>); }) 
-        : tab === 'ITEMS' ? (<><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-100 border-2 border-blue-400">{ITEMS_CONFIG.FEED.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_FEED_name')}</h3><p className="text-xs text-slate-500 font-bold text-blue-600">x{ITEMS_CONFIG.FEED.quantity}</p></div><button disabled={balance < ITEMS_CONFIG.FEED.price} onClick={(e)=>{onBuyItem('FEED', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.FEED.price} 💰</button></div><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-red-100 border-2 border-red-400">{ITEMS_CONFIG.VACCINE.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_VACCINE_name')}</h3><p className="text-xs text-slate-500 font-bold text-red-600">{t('store_cure')}</p></div><button disabled={balance < ITEMS_CONFIG.VACCINE.price} onClick={(e)=>{onBuyItem('VACCINE', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.VACCINE.price} 💰</button></div><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-slate-200 border-2 border-slate-400">{ITEMS_CONFIG.EXPANSION.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_EXPANSION_name')}</h3><p className="text-xs text-slate-500 font-bold text-slate-600">{t('item_EXPANSION_desc', [ITEMS_CONFIG.EXPANSION.quantity])}</p></div><button disabled={balance < ITEMS_CONFIG.EXPANSION.price} onClick={(e)=>{onBuyItem('EXPANSION', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.EXPANSION.price} 💰</button></div></>)
+        {tab === 'ANIMALS' ? STORE_ANIMALS.map(p => { 
+          const isLocked = level < p.minLevel; 
+          const canAfford = balance >= p.priceCoins; 
+          // Mock chicken for visual preview (Adult version)
+          const previewChicken = { type: p.type, age_days: 30 };
+          
+          return (
+            <div key={p.type} className={`bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4 relative overflow-hidden ${isLocked ? 'grayscale opacity-80' : ''}`}>
+              {isLocked && <div className="absolute inset-0 bg-slate-200/50 backdrop-blur-[1px] z-10 flex items-center justify-center"><div className="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg"><Lock size={16} /> {t('store_level_req', [p.minLevel])}</div></div>}
+              
+              <div className={`w-16 h-16 flex items-center justify-center rounded-2xl ${TYPE_CONFIG[p.type].color} border-2 ${TYPE_CONFIG[p.type].border} overflow-hidden`}>
+                <ChickenVisual chicken={previewChicken} className="w-full h-full scale-125 translate-y-2" />
+              </div>
+              
+              <div className="flex-1"><h3 className="font-black text-slate-800">{t(`animal_${p.type}_name`)}</h3><p className="text-xs text-slate-500">{t(`animal_${p.type}_desc`)}</p></div><button disabled={isLocked || !canAfford} onClick={(e)=>{onBuyAnimal(p, e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{p.priceCoins} 💰</button></div>); }) 
+        : tab === 'ITEMS' ? (<><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-100 border-2 border-blue-400">{ITEMS_CONFIG.FEED.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_FEED_name')}</h3><p className="text-xs text-slate-500 font-bold text-blue-600">x{ITEMS_CONFIG.FEED.quantity}</p></div><button disabled={balance < ITEMS_CONFIG.FEED.price} onClick={(e)=>{onBuyItem('FEED', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.FEED.price} 💰</button></div><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-red-100 border-2 border-red-400">{ITEMS_CONFIG.VACCINE.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_VACCINE_name')}</h3><p className="text-xs text-slate-500 font-bold text-red-600">{t('store_cure')}</p></div><button id="tut-buy-vaccine" disabled={balance < ITEMS_CONFIG.VACCINE.price} onClick={(e)=>{onBuyItem('VACCINE', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.VACCINE.price} 💰</button></div><div className="bg-white/90 p-4 rounded-3xl border-b-4 border-slate-200 flex items-center gap-4"><div className="text-4xl w-16 h-16 flex items-center justify-center rounded-2xl bg-slate-200 border-2 border-slate-400">{ITEMS_CONFIG.EXPANSION.icon}</div><div className="flex-1"><h3 className="font-black text-slate-800">{t('item_EXPANSION_name')}</h3><p className="text-xs text-slate-500 font-bold text-slate-600">{t('item_EXPANSION_desc', [ITEMS_CONFIG.EXPANSION.quantity])}</p></div><button disabled={balance < ITEMS_CONFIG.EXPANSION.price} onClick={(e)=>{onBuyItem('EXPANSION', e); playSound('coin');}} className="bg-green-500 disabled:bg-slate-300 text-white px-4 py-2 rounded-xl font-black border-b-4 border-green-700 disabled:border-slate-400 whitespace-nowrap">{ITEMS_CONFIG.EXPANSION.price} 💰</button></div></>)
         : tab === 'TECH' ? (
           <>
             {Object.values(TECH_CONFIG).map(tech => {

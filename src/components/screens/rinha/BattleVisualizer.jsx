@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Shield, Swords, Target, Flame, Droplets, Wind, Mountain, TrendingUp, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -120,7 +121,7 @@ const BattleVisualizer = ({ matchData, playerRooster, onComplete }) => {
   }, [currentRound, rounds, gameState]);
 
   const addFloatingText = (target, damage, isCritical, isWeak) => {
-    const id = Date.now() + Math.random();
+    const id = uuidv4();
     setFloatingTexts(prev => [...prev, { id, target, damage, isCritical, isWeak }]);
     setTimeout(() => {
       setFloatingTexts(prev => prev.filter(t => t.id !== id));

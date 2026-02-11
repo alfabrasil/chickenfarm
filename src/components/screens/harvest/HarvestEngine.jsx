@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Timer, Trophy, Zap, Shield, Skull, Coins, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 import { playSound } from '../../../utils/audioSystem';
 import { MINIGAME_CONFIG } from '../../../data/gameConfig';
@@ -80,7 +81,7 @@ const HarvestEngine = ({ config, onFinish, showToast }) => {
 
       if (available.length > 0) {
         const pos = available[Math.floor(Math.random() * available.length)];
-        setItems(prev => [...prev, { ...pos, ...selectedItem, id: Date.now() }]);
+        setItems(prev => [...prev, { ...pos, ...selectedItem, id: uuidv4() }]);
       }
     }, 3000); // Novo item a cada 3s
 

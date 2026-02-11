@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { 
-  ArrowUpCircle, Lock, Moon, Gamepad2, Dna, Zap
+  ArrowUpCircle, Lock, Moon
 } from 'lucide-react';
 
 // Dados e Configuração
@@ -12,6 +13,7 @@ import {
 
 // Utilitários
 import { playSound, setGlobalMute, initAudio, attachAudioUnlockListeners } from './utils/audioSystem';
+import { bgm } from './utils/musicSystem';
 
 // Componentes UI
 import FoxComponent from './components/ui/Fox';
@@ -23,6 +25,7 @@ import AchievementModal from './components/modals/AchievementModal';
 import QuestsModal from './components/modals/QuestsModal';
 import LevelUpModal from './components/modals/LevelUpModal';
 import LegendaryDropModal from './components/modals/LegendaryDropModal';
+import ChickenCustomizer from './components/modals/ChickenCustomizer';
 
 // Componentes Principais
 import Navbar from './components/Navbar';
@@ -46,14 +49,17 @@ import ChickenChaseScreen from './components/screens/ChickenChaseScreen';
 import CockfightScreen from './components/screens/CockfightScreen';
 import HarvestGameScreen from './components/screens/harvest/HarvestGameScreen';
 import { useLanguage } from './contexts/LanguageContext';
+import { useTutorial, TUTORIAL_STEPS } from './contexts/TutorialContext';
+import TutorialOverlay from './components/ui/TutorialOverlay';
 
 // --- APP PRINCIPAL ---
 export default function App() {
   const { t } = useLanguage();
+  const { updateGameState, advanceStep, currentStep } = useTutorial();
   const [session, setSession] = useState(() => localStorage.getItem('farm_session') || 'AUTH');
   const [balance, setBalance] = useState(() => {
-    const val = Number(localStorage.getItem('farm_balance'));
-    return isNaN(val) ? 0 : val;
+    const val = localStorage.getItem('farm_balance');
+    return val === null ? 100 : Number(val); // 100 coins initial
   });
   const [bankBalance, setBankBalance] = useState(() => {
     const val = Number(localStorage.getItem('farm_bank_balance'));
@@ -91,7 +97,15 @@ export default function App() {
       if (s) {
         const parsed = JSON.parse(s);
         if (Array.isArray(parsed)) {
+          const seenIds = new Set();
           return parsed.map(c => {
+            // Garante unicidade de IDs (Correção de Bug de Chaves Duplicadas)
+            if (seenIds.has(c.id)) {
+              console.warn('Duplicate chicken ID found, regenerating:', c.id);
+              c.id = uuidv4();
+            }
+            seenIds.add(c.id);
+
             if (c.is_starter || c.name === t('app_starter_name') || c.id === 1) {
                return { ...c, last_collected_day: c.last_collected_day || 0, is_starter: true, immune: true, is_sick: false };
             }
@@ -99,10 +113,23 @@ export default function App() {
           });
         }
       }
+      // Initial Chick: age_days 0 to require 30 days growth
+      return [{ 
+        id: 1, 
+        type: 'GRANJA', 
+        name: t('app_starter_name'), 
+        age_days: 0, 
+        last_fed_day: 1, 
+        is_sick: false, 
+        has_poop: false, 
+        last_collected_day: 0,
+        is_starter: true,
+        immune: true 
+      }]; 
     } catch (e) {
       console.error("Erro ao carregar galinhas:", e);
+      return [];
     }
-    return []; 
   });
 
   const [automations, setAutomations] = useState(() => {
@@ -147,6 +174,16 @@ export default function App() {
     const val = Number(localStorage.getItem('farm_golden_eggs'));
     return isNaN(val) ? 0 : val;
   });
+
+  // Inicialização do Sistema de Áudio (SFX + Música)
+  useEffect(() => {
+    // Inicializa SFX (WebAudio + Pool)
+    initAudio();
+    attachAudioUnlockListeners();
+    
+    // Inicializa Música de Fundo
+    bgm.init();
+  }, []);
 
   // MIGRAÇÃO DE NOMES (Auto-fix para tradução dinâmica)
   useEffect(() => {
@@ -213,11 +250,33 @@ export default function App() {
     }
   });
 
-  // ENGENHARIA: Desbloqueio confiável de áudio no iOS (primeira interação)
+  // --- EFEITOS DE INICIALIZAÇÃO ---
   useEffect(() => {
+    // Audio Unlock (Mobile)
     attachAudioUnlockListeners();
-    // Garantir contexto criado também em navegadores não iOS
-    initAudio();
+    // Inicia Música de Fundo
+    bgm.init();
+    
+    // Recupera Mute
+    const savedMute = localStorage.getItem('farm_muted') === 'true';
+    setIsMuted(savedMute);
+    setGlobalMute(savedMute);
+
+    // Sistema de Dia/Noite
+    const timer = setInterval(() => {
+      // 2 minutos de dia, 1 minuto de noite (Ciclo de 3 min)
+      const now = Date.now();
+      const cycleTime = 3 * 60 * 1000; 
+      const timeInCycle = now % cycleTime;
+      const isNightTime = timeInCycle > 2 * 60 * 1000;
+      
+      setIsNight(prev => {
+        if (prev !== isNightTime) return isNightTime;
+        return prev;
+      });
+    }, 5000); // Check a cada 5s
+
+    return () => clearInterval(timer);
   }, []);
   
   // ENGENHARIA: Novos Estados para os recursos implementados
@@ -246,6 +305,12 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [floatingTexts, setFloatingTexts] = useState([]);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [customizingChicken, setCustomizingChicken] = useState(null);
+
+  // Tutorial State Sync
+  useEffect(() => {
+    updateGameState({ chickens, inventory, balance, currentView: view, dayCount, canSpin: canSpinWheel() });
+  }, [chickens, inventory, balance, view, dayCount]);
 
   useEffect(() => {
     setGlobalMute(isMuted);
@@ -328,7 +393,7 @@ export default function App() {
     const spawnInterval = setInterval(() => {
       if (upgrades.FENCE) return; 
       if (session === 'GAME' && !fox && !isNight && Math.random() < 0.3) {
-        const newFox = { id: Date.now(), x: Math.random() * 80 + 10, y: Math.random() * 60 + 20 };
+        const newFox = { id: uuidv4(), x: Math.random() * 80 + 10, y: Math.random() * 60 + 20 };
         setFox(newFox);
         playSound('fox');
         showToast(t('fox_appeared'), "error");
@@ -385,7 +450,7 @@ export default function App() {
   }, [stats]);
 
   const addFloatingText = (x, y, text, color) => {
-    const id = Date.now();
+    const id = uuidv4();
     setFloatingTexts(prev => [...prev, { id, x, y, text, color }]);
     setTimeout(() => setFloatingTexts(prev => prev.filter(item => item.id !== id)), 1000);
   };
@@ -479,11 +544,12 @@ export default function App() {
 
   const handleBuyAuction = (listing) => {
     if (balance >= listing.price && chickens.length < maxCapacity) {
+      const config = TYPE_CONFIG[listing.type] || TYPE_CONFIG.GRANJA;
       setBalance(prev => prev - listing.price);
       setChickens(prev => [...prev, {
-        id: Date.now(),
+        id: uuidv4(),
         type: listing.type,
-        name: t('app_auction_prefix', [t(TYPE_CONFIG[listing.type].nameKey)]),
+        name: t('app_auction_prefix', [t(config.nameKey)]),
         age_days: listing.age,
         last_fed_day: dayCount,
         is_sick: false,
@@ -492,7 +558,7 @@ export default function App() {
       }]);
       setAuctionItems(prev => prev.filter(item => item.id !== listing.id));
       playSound('sold');
-      showToast(t('app_bought_animal', [t(TYPE_CONFIG[listing.type].nameKey)]), 'success');
+      showToast(t('app_bought_animal', [t(config.nameKey)]), 'success');
     } else if (chickens.length >= maxCapacity) {
       showToast(t('app_barn_full'), "error");
     } else {
@@ -501,7 +567,8 @@ export default function App() {
   };
 
   const handleSellAuction = (chicken) => {
-    const price = Math.floor(TYPE_CONFIG[chicken.type].feedConsumption * 100 + chicken.age_days * 2);
+    const config = TYPE_CONFIG[chicken.type] || TYPE_CONFIG.GRANJA;
+    const price = Math.floor(config.feedConsumption * 100 + chicken.age_days * 2);
     setBalance(prev => prev + price);
     setChickens(prev => prev.filter(c => c.id !== chicken.id));
     playSound('sold');
@@ -518,7 +585,7 @@ export default function App() {
     setXp(0);
     setMaxCapacity(4);
     setInventory({ feed: 5, vaccine: 0, eggs_common: 0, eggs_rare: 0, eggs_legendary: 0 });
-    setChickens([{ id: Date.now(), type: "GRANJA", name: t('app_rebirth_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0 }]);
+    setChickens([{ id: uuidv4(), type: "GRANJA", name: t('app_rebirth_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0 }]);
     setAutomations({});
     setUpgrades({});
     setCoopProgress(0);
@@ -554,7 +621,8 @@ export default function App() {
         
         const nextChickens = chickens.map(c => {
           if (c.last_fed_day < nextDay) {
-             const consumption = TYPE_CONFIG[c.type].feedConsumption;
+             const config = TYPE_CONFIG[c.type] || TYPE_CONFIG.GRANJA;
+             const consumption = config.feedConsumption;
              if (tempFeed >= consumption) {
                tempFeed -= consumption;
                feedUsed += consumption;
@@ -623,7 +691,7 @@ export default function App() {
 
       if (Math.random() < 0.5 && auctionItems.length < 5) {
          setAuctionItems(prev => [...prev, { 
-           id: Date.now(), 
+           id: uuidv4(), 
            seller: 'BotFarm', 
            type: Math.random() > 0.5 ? 'CAIPIRA' : 'GIGANTE', 
            age: Math.floor(Math.random() * 30) + 1, 
@@ -698,7 +766,7 @@ export default function App() {
       setBalance(prev => prev - product.priceCoins);
       const nameKey = `chicken_name_${product.type}`;
       setChickens([...chickens, { 
-        id: Date.now(), 
+        id: uuidv4(), 
         type: product.type, 
         nameKey: nameKey,
         name: t(nameKey), 
@@ -777,12 +845,18 @@ export default function App() {
   };
   
   const handleFeed = (chicken) => {
-    const config = TYPE_CONFIG[chicken.type];
+    // Fallback to GRANJA if type is invalid
+    const config = TYPE_CONFIG[chicken.type] || TYPE_CONFIG.GRANJA;
     if (inventory.feed >= config.feedConsumption) {
       setInventory(prev => ({ ...prev, feed: prev.feed - config.feedConsumption }));
       setChickens(prev => prev.map(c => c.id === chicken.id ? { ...c, last_fed_day: dayCount } : c));
       showToast(t('app_fed_msg'), 'info');
       updateQuestProgress('FEED');
+
+      // Tutorial Check
+      if (currentStep === TUTORIAL_STEPS.FEED_CHICK) {
+        advanceStep(TUTORIAL_STEPS.CHECK_BARN);
+      }
     } else { showToast(t('app_no_feed_barn'), "error"); }
   };
   
@@ -812,7 +886,7 @@ export default function App() {
     playSound('success');
     addFloatingText(e.clientX, e.clientY, `+${commission} 💰`, '#22c55e');
     showToast(t('app_referral_commission', [levelConfig.label]), 'success');
-    setReferralHistory(prev => [{ id: Date.now(), desc: t('app_referral_history_desc', [levelConfig.level, 'Gigante']), amount: commission }, ...prev]);
+    setReferralHistory(prev => [{ id: uuidv4(), desc: t('app_referral_history_desc', [levelConfig.level, 'Gigante']), amount: commission }, ...prev]);
   };
 
   const handleCloseAchievement = () => {
@@ -821,11 +895,20 @@ export default function App() {
       setNewAchievement(null);
     }
   };
+
+  const handleUpdateChicken = (chickenId, updates) => {
+    setChickens(prev => prev.map(c => 
+      c.id === chickenId ? { ...c, ...updates } : c
+    ));
+    // Atualiza também a referência do modal para refletir mudanças em tempo real
+    setCustomizingChicken(prev => ({ ...prev, ...updates }));
+  };
   
   const pendingRewards = quests.some(q => q.completed && !q.claimed);
 
   return (
     <div className="min-h-screen relative font-sans select-none overflow-hidden bg-slate-100">
+      <TutorialOverlay />
       {/* ENGENHARIA: Passando skin ID para o background */}
       <FarmBackground isNight={isNight} weather={weather} skinId={currentSkin} />
       <FloatingText items={floatingTexts} />
@@ -833,17 +916,25 @@ export default function App() {
       {showLevelUp && <LevelUpModal newLevel={level} onClose={() => setShowLevelUp(false)} />}
       {showQuests && <QuestsModal quests={quests} onClose={() => setShowQuests(false)} onClaim={handleClaimQuest} />}
       
+      {customizingChicken && (
+        <ChickenCustomizer 
+          chicken={customizingChicken} 
+          onClose={() => setCustomizingChicken(null)} 
+          onUpdateChicken={handleUpdateChicken}
+        />
+      )}
+
       {newAchievement && <AchievementModal achievement={newAchievement} onClose={handleCloseAchievement} />}
 
       {session === 'GAME' && fox && <FoxComponent x={fox.x} y={fox.y} onClick={handleFoxClick} />}
 
       {session === 'AUTH' && <AuthScreen onLogin={() => setSession('UNBOXING')} />}
-      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: 1, type: "GRANJA", name: t('app_starter_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true, immune: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
+      {session === 'UNBOXING' && <UnboxingScreen onFinish={() => {setChickens([{ id: uuidv4(), type: "GRANJA", name: t('app_starter_name'), age_days: 0, last_fed_day: 1, is_sick: false, has_poop: false, last_collected_day: 0, is_starter: true, immune: true }]); setBalance(50); setInventory(prev=>({...prev, feed:5})); generateDailyQuests(); setSession('GAME');}} />}
       
       {session === 'GAME' && (
         <div className="relative z-10 h-screen overflow-y-auto">
           {/* Adicionando MobileBottomNav condicionalmente */}
-          <MobileBottomNav currentView={view} onViewChange={setView} openQuests={() => setShowQuests(true)} pendingRewards={pendingRewards} />
+          <MobileBottomNav currentView={view} onViewChange={setView} openQuests={() => setShowQuests(true)} pendingRewards={pendingRewards} upgrades={upgrades} />
 
           <div className="p-4 max-w-4xl mx-auto min-h-full pb-24 md:pb-4">
             <Navbar balance={balance} dayCount={dayCount} onViewChange={setView} currentView={view} level={level} xp={xp} xpToNextLevel={level*100} weather={weather} openQuests={() => setShowQuests(true)} goldenEggs={goldenEggs} pendingRewards={pendingRewards} automations={automations} upgrades={upgrades} />
@@ -851,30 +942,24 @@ export default function App() {
 
             {view === 'COOP' ? (
               <div className="animate-in slide-in-from-left-10 fade-in duration-300 pb-24 md:pb-0">
-                 <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[70] flex flex-col gap-4">
-                   <button onClick={() => setView('CHASE')} className="bg-purple-600 hover:bg-purple-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-purple-400 animate-in zoom-in group relative">
-                     <Gamepad2 size={32} fill="currentColor" className="group-hover:rotate-12 transition-transform"/>
-                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white animate-pulse">{t('nav_new')}</span>
-                   </button>
-                   <button onClick={() => setView('HARVEST')} className="bg-green-600 hover:bg-green-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-green-400 animate-in zoom-in group relative">
-                     <Zap size={32} fill="currentColor" className="group-hover:scale-110 transition-transform"/>
-                   </button>
-                   {upgrades.LAB && (
-                     <button onClick={() => setView('LAB')} className="bg-pink-500 hover:bg-pink-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-pink-400 animate-in zoom-in">
-                       <Dna size={32} fill="currentColor" className="animate-pulse"/>
-                     </button>
-                   )}
-                   <button onClick={handleSleep} disabled={isNight} className="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-indigo-400 animate-bounce">
-                     {isNight ? <span className="animate-spin">⏳</span> : <Moon size={32} fill="currentColor" />}
+                 {/* Botão de Avançar Dia (Lua) - Apenas para Testes/MVP */}
+                 <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[70]">
+                   <button 
+                    onClick={handleSleep} 
+                    disabled={isNight} 
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-indigo-400 animate-bounce transition-all active:scale-90"
+                   >
+                     {isNight ? <span className="animate-spin text-xl">⏳</span> : <Moon size={32} fill="currentColor" />}
                    </button>
                  </div>
+
                  <div className="mb-6 bg-white/60 backdrop-blur-sm p-4 rounded-2xl inline-block border-2 border-white/50 shadow-sm">
                    <h1 className="text-2xl font-black text-slate-800 drop-shadow-sm">{t('app_coop_title')}</h1>
                    <p className="text-slate-700 font-medium text-xs sm:text-sm">{t('app_capacity', [chickens.length, maxCapacity])}</p>
                  </div>
                  {chickens.length === 0 ? <div className="text-center bg-white/50 p-8 rounded-3xl">{t('app_empty_barn')}</div> : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
-                    {chickens.map(chicken => (<ChickenCard key={chicken.id} chicken={chicken} onFeed={handleFeed} onCollect={handleCollect} onHeal={handleHeal} onClean={handleClean} inventory={inventory} dayCount={dayCount} addFloatingText={addFloatingText} />))}
+                    {chickens.map((chicken, index) => (<ChickenCard key={`${chicken.id}-${index}`} chicken={chicken} onFeed={handleFeed} onCollect={handleCollect} onHeal={handleHeal} onClean={handleClean} onCustomize={setCustomizingChicken} inventory={inventory} dayCount={dayCount} addFloatingText={addFloatingText} />))}
                     {chickens.length < maxCapacity ? (
                       <div onClick={() => setView('STORE')} className="w-full min-h-[300px] rounded-3xl border-4 border-dashed border-white/60 bg-white/30 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-white hover:bg-white/50 hover:border-white cursor-pointer transition-all group shadow-lg"><ArrowUpCircle size={48} /><span className="font-black text-lg text-slate-800 drop-shadow-md">{t('app_new_chicken')}</span></div>
                     ) : (

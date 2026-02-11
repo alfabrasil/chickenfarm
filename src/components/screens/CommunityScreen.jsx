@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Share2, Copy, Zap, Target, Gift, Gavel, ShoppingBag, Clock, DollarSign } from 'lucide-react';
 import { REFERRAL_LEVELS, TYPE_CONFIG } from '../../data/gameConfig';
 import { useLanguage } from '../../contexts/LanguageContext';
+import ChickenVisual from '../game/ChickenVisual';
 
 const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProgress, onContributeCoop, onBuyAuction, chickens, onSellAuction, balance, maxCapacity, auctionItems }) => {
   const { t } = useLanguage();
@@ -65,9 +66,13 @@ const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProg
               <div className="text-center py-4 text-slate-400 italic">{t('comm_no_auctions')}</div>
             ) : (
               <div className="space-y-3">
-                {auctionItems.map(listing => (
+                {auctionItems.map(listing => {
+                  const config = TYPE_CONFIG[listing.type] || TYPE_CONFIG.GRANJA;
+                  return (
                   <div key={listing.id} className="bg-white p-3 rounded-2xl border-b-4 border-slate-200 flex items-center gap-3">
-                    <div className={`w-12 h-12 flex items-center justify-center text-2xl rounded-xl border-2 ${TYPE_CONFIG[listing.type].color} ${TYPE_CONFIG[listing.type].border}`}>{TYPE_CONFIG[listing.type].icon}</div>
+                    <div className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 ${config.color} ${config.border} overflow-hidden`}>
+                      <ChickenVisual chicken={{ type: listing.type, age_days: listing.age }} className="w-full h-full scale-125 translate-y-2" />
+                    </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <span className="font-black text-slate-700 text-sm">{listing.type} <span className="font-normal text-slate-400">({listing.age} {t('chicken_age_days')})</span></span>
@@ -79,7 +84,8 @@ const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProg
                       {listing.price} 💰
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -87,17 +93,22 @@ const CommunityScreen = ({ onBack, onSimulateReferral, referralHistory, coopProg
             <h3 className="font-black text-slate-800 mb-3 flex items-center gap-2 mt-6"><DollarSign size={20}/> {t('comm_sell_your_chickens')}</h3>
             {chickens.length === 0 ? <p className="text-xs text-slate-400">{t('comm_no_chickens_to_sell')}</p> : (
               <div className="grid grid-cols-3 gap-2">
-                {chickens.map(chicken => (
-                  <div key={chicken.id} onClick={() => setSelectedSell(chicken)} className={`cursor-pointer p-2 rounded-xl border-2 transition-all ${selectedSell?.id === chicken.id ? 'bg-amber-100 border-amber-400' : 'bg-white border-slate-200'}`}>
-                    <div className="text-center text-2xl mb-1">{TYPE_CONFIG[chicken.type].icon}</div>
+                {chickens.map((chicken, index) => {
+                  const config = TYPE_CONFIG[chicken.type] || TYPE_CONFIG.GRANJA;
+                  return (
+                  <div key={`${chicken.id}-${index}`} onClick={() => setSelectedSell(chicken)} className={`cursor-pointer p-2 rounded-xl border-2 transition-all ${selectedSell?.id === chicken.id ? 'bg-amber-100 border-amber-400' : 'bg-white border-slate-200'}`}>
+                    <div className="w-12 h-12 mx-auto mb-1 flex items-center justify-center overflow-hidden">
+                       <ChickenVisual chicken={chicken} className="w-full h-full scale-125 translate-y-2" />
+                    </div>
                     <div className="text-[10px] font-bold text-center text-slate-600 truncate">{chicken.name}</div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             {selectedSell && (
               <div className="mt-4 bg-white p-4 rounded-2xl border-b-4 border-slate-200 animate-in fade-in slide-in-from-bottom-2">
-                <div className="flex justify-between items-center mb-4"><span className="font-bold text-slate-600">{t('comm_suggested_price')}:</span><span className="font-black text-xl text-green-600">{Math.floor(TYPE_CONFIG[selectedSell.type].feedConsumption * 100 + selectedSell.age_days * 2)} 💰</span></div>
+                <div className="flex justify-between items-center mb-4"><span className="font-bold text-slate-600">{t('comm_suggested_price')}:</span><span className="font-black text-xl text-green-600">{Math.floor((TYPE_CONFIG[selectedSell.type] || TYPE_CONFIG.GRANJA).feedConsumption * 100 + selectedSell.age_days * 2)} 💰</span></div>
                 <button onClick={() => { onSellAuction(selectedSell); setSelectedSell(null); }} className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-black shadow-lg border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 transition-all">{t('comm_sell_on_auction')}</button>
               </div>
             )}

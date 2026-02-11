@@ -158,9 +158,9 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
 
 
   // --- RENDER HELPERS ---
-  const renderDoor = (door, onClick, disabled) => (
+  const renderDoor = (door, onClick, disabled, prefix = 'door') => (
     <button
-      key={door.id}
+      key={`${prefix}-${door.id}`}
       disabled={disabled || door.status === 'OPEN'}
       onClick={() => onClick(door.id)}
       className={`relative aspect-[3/4] rounded-t-full border-4 transition-all transform duration-300 ${
@@ -254,7 +254,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
                 </div>
                 
                 <div className="grid grid-cols-4 gap-3">
-                  {soloDoors.map(door => renderDoor(door, handleSoloDoorClick, soloState !== 'PLAYING'))}
+                  {soloDoors.map(door => renderDoor(door, handleSoloDoorClick, soloState !== 'PLAYING', 'solo'))}
                 </div>
 
                 {(soloState === 'WON' || soloState === 'LOST') && (
@@ -331,7 +331,7 @@ const ChickenChaseScreen = ({ onBack, balance, setBalance, showToast }) => {
                 )}
 
                 <div className="grid grid-cols-4 gap-3">
-                  {pvpDoors.map(door => renderDoor(door, handlePvpDoorClick, pvpState !== 'PLAYING' || pvpTurn !== 'PLAYER'))}
+                  {pvpDoors.map(door => renderDoor(door, handlePvpDoorClick, pvpState !== 'PLAYING' || pvpTurn !== 'PLAYER', 'pvp'))}
                 </div>
               </div>
             )}

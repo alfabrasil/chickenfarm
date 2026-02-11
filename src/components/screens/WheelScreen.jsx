@@ -3,9 +3,11 @@ import { X, HelpCircle } from 'lucide-react';
 import { WHEEL_PRIZES } from '../../data/gameConfig';
 import { playSound } from '../../utils/audioSystem';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTutorial, TUTORIAL_STEPS } from '../../contexts/TutorialContext';
 
 const WheelScreen = ({ onBack, onSpin, canSpin, balance }) => {
   const { t } = useLanguage();
+  const { currentStep, completeTutorial } = useTutorial();
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
 
@@ -19,6 +21,11 @@ const WheelScreen = ({ onBack, onSpin, canSpin, balance }) => {
       setSpinning(false);
       const prize = WHEEL_PRIZES[Math.floor(Math.random() * WHEEL_PRIZES.length)];
       onSpin(prize);
+      
+      // Tutorial Check
+      if (currentStep === TUTORIAL_STEPS.DAILY_SPIN) {
+        completeTutorial();
+      }
     }, 4000);
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { X, Trophy, History, Play, Info, Coins, Zap, Shield, Skull, ChevronLeft } from 'lucide-react';
 import { playSound } from '../../../utils/audioSystem';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -30,7 +31,18 @@ const HarvestGameScreen = ({ onBack, balance, setBalance, showToast, chickens })
   const [history, setHistory] = useState(() => {
     try {
       const s = localStorage.getItem('farm_harvest_history');
-      return s ? JSON.parse(s) : [];
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          const seenIds = new Set();
+          return parsed.map(item => {
+            if (seenIds.has(item.id)) item.id = uuidv4();
+            seenIds.add(item.id);
+            return item;
+          });
+        }
+      }
+      return [];
     } catch (e) {
       return [];
     }
@@ -86,7 +98,7 @@ const HarvestGameScreen = ({ onBack, balance, setBalance, showToast, chickens })
 
     // Salvar no Histórico
     const newHistoryItem = {
-      id: Date.now(),
+      id: uuidv4(),
       date: new Date().toISOString(),
       opponent: gameConfig.opponent.name,
       bet: gameConfig.bet,
